@@ -1,8 +1,6 @@
 import base64
 import json
 from datetime import datetime
-import re
-import sys
 from urllib.parse import urljoin
 
 import parsel
@@ -99,7 +97,6 @@ def check_username(username, site_id, group_id, total,
 
     # Make a splash request.
     site = db_session.query(Site).get(site_id)
-    err = None
 
     # Check site.
     splash_result = _splash_request(db_session, username,
@@ -167,6 +164,7 @@ def _check_splash_response(site, splash_response, splash_data):
 
     return status_ok and match_ok
 
+
 def _save_image(db_session, scrape_result):
     """ Save the image returned by Splash to a local file. """
     if scrape_result['error'] is None:
@@ -198,6 +196,12 @@ def _splash_request(db_session, username, site, request_timeout):
     ''' Ask splash to render a page for us. '''
     target_url = site.get_url(username)
     splash_url = get_config(db_session, 'splash_url', required=True).value
+    splash_user = get_config(db_session, 'splash_user',
+                             required=True).value
+    splash_pass = get_config(db_session, 'splash_password',
+                             required=True).value
+    auth = (splash_user, splash_pass)
+
     splash_headers = {
         'User-Agent': USER_AGENT,
     }
@@ -209,11 +213,15 @@ def _splash_request(db_session, username, site, request_timeout):
         'timeout': request_timeout,
         'resource_timeout': 5,
     }
+
     splash_response = requests.get(
         urljoin(splash_url, 'render.json'),
         headers=splash_headers,
-        params=splash_params
+        params=splash_params,
+        auth=auth
     )
+    print(splash_response.content, flush=True)
+
     result = {
         'code': splash_response.status_code,
         'error': None,
