@@ -125,8 +125,9 @@ def check_username(username, site_id, group_id, total,
         result_dict['total'] = total
         redis.publish('result', json.dumps(result_dict))
 
-        # Queue archive job
-        app.queue.schedule_archive(username, group_id, tracker_id)
+        # If this username search is complete, then queue up an archive job.
+        if current == total:
+            app.queue.schedule_archive(username, group_id, tracker_id)
 
     worker.finish_job()
 
@@ -220,7 +221,6 @@ def _splash_request(db_session, username, site, request_timeout):
         params=splash_params,
         auth=auth
     )
-    print(splash_response.content, flush=True)
 
     result = {
         'code': splash_response.status_code,
