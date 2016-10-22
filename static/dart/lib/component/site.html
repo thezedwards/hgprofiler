@@ -147,12 +147,8 @@
             </form>
           </div>
 
-          <div class="col-sm-3">
-            <img ng-show="awaitingTestResult(editSiteId)"
-                 height="142"
-                 width="142"
-                 id="test-loader"
-                 src="/static/img/spinner-blue-lg.gif">
+          <div class="col-sm-3 text-center">
+            <i ng-show="awaitingTestResult(editSiteId)" class="fa fa-spinner fa-pulse fa-spin fa-5x fa-fw test-spinner"></i>
             <!-- Start container -->
             <div ng-show="editSiteId != null && sites[editSiteId].testedAt != null && !awaitingTestResult(editSiteId)"
                  class="test-container">
@@ -203,12 +199,8 @@
 
           </div>
 
-          <div class="col-sm-3">
-            <img ng-show="awaitingTestResult(editSiteId)"
-                 height="142"
-                 width="142"
-                 id="test-loader"
-                 src="/static/img/spinner-blue-lg.gif">
+          <div class="col-sm-3 text-center">
+            <i ng-show="awaitingTestResult(editSiteId)" class="fa fa-spinner fa-pulse fa-spin fa-5x fa-fw test-spinner"></i>
             <!-- Start container -->
             <div ng-show="editSiteId != null && sites[editSiteId].testedAt != null && !awaitingTestResult(editSiteId)"
                  class="test-container">
@@ -315,7 +307,7 @@
   <div class="panel-heading">
     <i class="fa fa-bars"></i>
     Sites
-    <img ng-show='loading > 0' src='/static/img/spinner-black-snake.gif'>
+    <i ng-show="loading > 0" class="fa fa-spinner fa-pulse fa-spin"></i>
   </div>
   <div class="panel-body">
 
@@ -388,7 +380,7 @@
                     </button>
                   </span>
                   <span ng-if="sites[id].testResultPos == null && !awaitingTestResult(id)"><em>N/A</span>
-                  <img ng-if='awaitingTestResult(id)' src='/static/img/spinner-black-snake.gif'>
+                  <i ng-show="awaitingTestResult(id)" class="fa fa-spinner fa-pulse fa-spin"></i>
                 </td>
                 <td class="text-center">
                   <span ng-if="sites[id].testResultNeg != null && !awaitingTestResult(id)">
@@ -402,7 +394,7 @@
                     </button>
                   </span>
                   <span ng-if="sites[id].testResultNeg == null && !awaitingTestResult(id)"><em>N/A</em></span>
-                  <img ng-if='awaitingTestResult(id)' src='/static/img/spinner-black-snake.gif'>
+                  <i ng-show="awaitingTestResult(id)" class="fa fa-spinner fa-pulse fa-spin"></i>
                 </td>
                 <td class="text-center hidden-sm hidden-xs">
                   <span ng-show="sites[id].testedAt != null">{{sites[id].testedAt | date:'yyyy-MM-dd h:mm a'}}</span>
