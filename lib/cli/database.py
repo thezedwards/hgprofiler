@@ -817,6 +817,18 @@ class DatabaseCli(cli.BaseCli):
         )
         session.add(netvibes)
 
+        # OKCupid
+        okcupid = Site(
+            name='OkCupid',
+            url='https://www.okcupid.com/profile/%s',
+            category='dating',
+            status_code=200,
+            match_type='xpath',
+            match_expr="//div[contains(@class, 'info-username')]",
+            test_username_pos='the_ferett'
+        )
+        session.add(okcupid)
+
         pandora = Site(
             name='Pandora',
             url='https://www.pandora.com/profile/%s',
