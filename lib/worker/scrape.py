@@ -28,7 +28,7 @@ def test_site(site_id, tracker_id, request_timeout=10):
     Perform postive and negative test of site.
 
     Postive test: check_username() return True for existing username.
-    Negative test check_username() returns False for non-existent username.
+    Negative test: check_username() returns False for non-existent username.
 
     Site is valid if:
 
@@ -99,8 +99,9 @@ def check_username(username, site_id, group_id, total,
     site = db_session.query(Site).get(site_id)
 
     # Check site.
-    splash_result = _splash_request(db_session, username,
-                                    site, request_timeout)
+    splash_result = _splash_username_request(username,
+                                             site,
+                                             request_timeout)
     image_file = _save_image(db_session, splash_result)
 
     # Save result to DB.
@@ -125,13 +126,89 @@ def check_username(username, site_id, group_id, total,
         result_dict['total'] = total
         redis.publish('result', json.dumps(result_dict))
 
-        # If this username search is complete, then queue up an archive job.
+        # If this username search is complete, then queue an archive job.
         if current == total:
             app.queue.schedule_archive(username, group_id, tracker_id)
 
     worker.finish_job()
 
     return result.id
+
+
+def splash_request(target_url, headers={}, request_timeout=10):
+    ''' Ask splash to render a page. '''
+    db_session = worker.get_session()
+    splash_url = get_config(db_session, 'splash_url', required=True).value
+    splash_user = get_config(db_session, 'splash_user',
+                             required=True).value
+    splash_pass = get_config(db_session, 'splash_password',
+                             required=True).value
+    auth = (splash_user, splash_pass)
+    splash_headers = {'content-type': 'application/json'}
+
+    if 'user-agent' not in [header.lower() for
+                            header in headers.keys()]:
+        headers['user-agent'] = USER_AGENT
+
+    payload = {
+        'url': target_url,
+        'html': 1,
+        'jpeg': 1,
+        'har': 1,
+        'history': 1,
+        'timeout': request_timeout,
+        'resource_timeout': 5,
+        'headers': headers
+    }
+
+    splash_response = requests.post(
+        urljoin(splash_url, 'render.json'),
+        headers=splash_headers,
+        json=payload,
+        auth=auth
+    )
+
+    return splash_response
+
+
+def _splash_username_request(username, site, request_timeout):
+    """
+    Ask splash to render a `username` search
+    result for `site`.
+    """
+    target_url = site.get_url(username)
+
+    if site.headers is None:
+        site.headers = {}
+
+    splash_response = splash_request(target_url,
+                                     site.headers,
+                                     request_timeout)
+
+    result = {
+        'code': splash_response.status_code,
+        'error': None,
+        'image': None,
+        'site': site.as_dict(),
+        'url': target_url,
+    }
+
+    splash_data = splash_response.json()
+
+    try:
+        splash_response.raise_for_status()
+
+        if _check_splash_response(site, splash_response, splash_data):
+            result['status'] = 'f'
+        else:
+            result['status'] = 'n'
+
+        result['image'] = splash_data['jpeg']
+    except Exception as e:
+        result['status'] = 'e'
+        result['error'] = str(e)
+
+    return result
 
 
 def _check_splash_response(site, splash_response, splash_data):
@@ -191,58 +268,3 @@ def _save_image(db_session, scrape_result):
         )
 
     return image_file
-
-
-def _splash_request(db_session, username, site, request_timeout):
-    ''' Ask splash to render a page for us. '''
-    target_url = site.get_url(username)
-    splash_url = get_config(db_session, 'splash_url', required=True).value
-    splash_user = get_config(db_session, 'splash_user',
-                             required=True).value
-    splash_pass = get_config(db_session, 'splash_password',
-                             required=True).value
-    auth = (splash_user, splash_pass)
-
-    splash_headers = {
-        'User-Agent': USER_AGENT,
-    }
-    splash_params = {
-        'url': target_url,
-        'html': 1,
-        'jpeg': 1,
-        'history': 1,
-        'timeout': request_timeout,
-        'resource_timeout': 5,
-    }
-
-    splash_response = requests.get(
-        urljoin(splash_url, 'render.json'),
-        headers=splash_headers,
-        params=splash_params,
-        auth=auth
-    )
-
-    result = {
-        'code': splash_response.status_code,
-        'error': None,
-        'image': None,
-        'site': site.as_dict(),
-        'url': target_url,
-    }
-
-    splash_data = splash_response.json()
-
-    try:
-        splash_response.raise_for_status()
-
-        if _check_splash_response(site, splash_response, splash_data):
-            result['status'] = 'f'
-        else:
-            result['status'] = 'n'
-
-        result['image'] = splash_data['jpeg']
-    except Exception as e:
-        result['status'] = 'e'
-        result['error'] = str(e)
-
-    return result
