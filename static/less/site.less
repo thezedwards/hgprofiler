@@ -54,12 +54,6 @@ body {
 button {
   transition: opacity @fast-animation;
 
-  // A spinner inside a button should be invisible, not removed from the flow.
-  img.ng-hide {
-    display: initial;
-    visibility: hidden !important;
-  }
-
   .dropdown-toggle {
     white-space: nowrap;
     overflow: hidden;
@@ -75,10 +69,6 @@ button {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-}
-
-button img.spinner {
-  margin: -4px -3px 0 -1px;
 }
 
 button.btn-add {
@@ -900,6 +890,10 @@ site {
        img {
          border-radius: 0;
        }
+    }
+
+    .test-spinner {
+      margin-top: 1em;
     }
 
     .test-footer {

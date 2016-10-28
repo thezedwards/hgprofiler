@@ -16,7 +16,7 @@
     <div class="panel {{dialogClass}}">
       <div class="panel-heading">
         <i class="fa fa-exchange"></i>
-        {{dialogTitle}} 
+        {{dialogTitle}}
       </div>
       <div class="panel-body">
 
@@ -80,17 +80,17 @@
                         ng-disabled='submittingGroup'>
                   Cancel
                 </button>
-                <busy-button id='add-group-button' 
-                             type='primary' 
+                <busy-button id='add-group-button'
+                             type='primary'
                              ng-show='editGroupId != null'
                              click='saveGroup'>
-                 <i class="fa fa-check"></i> Save 
+                 <i class="fa fa-check"></i> Save
                 </busy-button>
-                <busy-button id='add-group-button' 
-                             type='success' 
+                <busy-button id='add-group-button'
+                             type='success'
                              ng-show='editGroupId == null'
                              click='addGroup'>
-                 <i class="fa fa-check"></i> Add 
+                 <i class="fa fa-check"></i> Add
                 </busy-button>
               </div>
 
@@ -113,8 +113,8 @@
 <div class="panel panel-default">
   <div class="panel-heading">
     <i class="fa fa-bars"></i>
-    Groups 
-    <img ng-show='loading > 0' src='/static/img/spinner-black-snake.gif'>
+    Groups
+    <i ng-show="loading > 0" class="fa fa-spinner fa-pulse fa-spin"></i>
   </div>
   <div class="panel-body">
 
@@ -207,4 +207,3 @@
     </div>
   </div>
 </div>
-
