@@ -16,13 +16,14 @@ class Site {
     Result testResultNeg;
     DateTime testedAt;
     bool valid;
+    Map headers;
 
     // Errors related to creating or loading this site.
     String error;
 
     Site(String name, String url, String category,
          int statusCode, String matchType, String matchExpr,
-         String testUsernamePos) {
+         String testUsernamePos, Map headers) {
 
         this.name = name;
         this.url = url;
@@ -31,6 +32,7 @@ class Site {
         this.matchType = matchType;
         this.matchExpr = matchExpr;
 	    this.testUsernamePos = testUsernamePos;
+        this.headers = headers;
     }
 
     Site.fromJson(Map json) {
@@ -60,5 +62,6 @@ class Site {
 
 	    this.valid = json['valid'];
 	    this.testedAt = json['tested_at'];
+        this.headers = json['headers'];
     }
 }
