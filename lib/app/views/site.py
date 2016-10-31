@@ -23,6 +23,7 @@ SITE_ATTRS = {
     'status_code': {'type': int, 'required': False, 'allow_null': True},
     'test_username_pos': {'type': str, 'required': True},
     'test_username_neg': {'type': str, 'required': False},
+    'headers': {'type': dict, 'required': False},
 }
 
 
@@ -54,6 +55,7 @@ class SiteView(FlaskView):
                         "test_username_neg": "dPGMFrf72SaS",
                         "test_status": "f",
                         "tested_at": "2016-01-01T00:00:00.000000+00:00",
+                        "headers": {"referer": "http://www.google.com"},
                     },
                     ...
                 ],
@@ -85,6 +87,7 @@ class SiteView(FlaskView):
             on the site (used for testing)
         :>json str sites[n].test_username_neg: the username that
             does not exist on the site (used for testing)
+        :>json array sites[n].headers: the custom headers
 
         :status 200: ok
         :status 400: invalid argument[s]
@@ -139,7 +142,8 @@ class SiteView(FlaskView):
                         "match_type": "text",
                         "match_expr": "Foo Bar Baz",
                         "test_username_pos": "john",
-                        "test_username_neg": "dPGMFrf72SaS"
+                        "test_username_neg": "dPGMFrf72SaS",
+                        "headers": {"referer": "http://www.google.com"},
                     },
                     ...
                 ]
@@ -155,20 +159,21 @@ class SiteView(FlaskView):
 
         :<header Content-Type: application/json
         :<header X-Auth: the client's auth token
-        :>json list sites: a list of sites to create
-        :>json string sites[n].name: name of site
-        :>json string sites[n].url: username search url for the site
-        :>json string sites[n].category: category of the site
-        :>json int sites[n].status_code: the status code to check for
-            determining a match (nullable)
-        :>json string sites[n].match_type: type of match (see get_match_types()
-            for valid match types) (nullable)
-        :>json string sites[n].match_expr: expression to use for determining
-            a page match (nullable)
-        :>json string sites[n].test_username_pos: username that exists on site
-            (used for testing)
-        :>json string sites[n].test_username_neg: username that does not exist
-            on site (used for testing)
+        :<json list sites: a list of sites to create
+        :<json string sites[n].name: name of site
+        :<json string sites[n].url: username search url for the site
+        :<json string sites[n].category: category of the site
+        :<json int sites[n].status_code: the status code to check for
+           determining a match (nullable)
+        :<json string sites[n].match_type: type of match (see get_match_types()
+           for valid match types) (nullable)
+        :<json string sites[n].match_expr: expression to use for determining
+           a page match (nullable)
+        :<json string sites[n].test_username_pos: username that exists on site
+           (used for testing)
+        :<json string sites[n].test_username_neg: username that does not exist
+           on site (used for testing)
+        :<json array sites[n].headers: custom headers
 
         :status 200: created
         :status 400: invalid request body
@@ -181,16 +186,17 @@ class SiteView(FlaskView):
         for site_json in request_json['sites']:
             validate_request_json(site_json, SITE_ATTRS)
 
-            if (site_json['match_type'] is None or \
+            if (site_json['match_type'] is None or
                 site_json['match_expr'] is None) and \
-                site_json['status_code'] is None:
-                raise BadRequest('At least one of the following is required: '
-                    'status code or page match.')
+                    site_json['status_code'] is None:
+                        raise BadRequest('At least one of the '
+                                         'following is required: '
+                                         'status code or page match.')
 
         # Save sites
         for site_json in request_json['sites']:
             test_username_pos = site_json['test_username_pos'].lower().strip()
-            site = Site(name=site_json['name'].lower().strip(),
+            site = Site(name=site_json['name'].strip(),
                         url=site_json['url'].lower().strip(),
                         category=site_json['category'].lower().strip(),
                         test_username_pos=test_username_pos)
@@ -202,6 +208,9 @@ class SiteView(FlaskView):
             if 'test_username_neg' in site_json:
                 site.test_username_neg = site_json['test_username_neg'] \
                     .lower().strip(),
+
+            if 'headers' in site_json:
+                site.headers = site_json['headers']
 
             g.db.add(site)
 
@@ -252,6 +261,7 @@ class SiteView(FlaskView):
                     "match_expr": "Foo Bar Baz",
                     "test_username_pos": "bob",
                     "test_username_ne": "adfjf393rfjffkjd",
+                    "headers": {"referer": "http://www.google.com"},
                 }
             }
 
@@ -272,17 +282,19 @@ class SiteView(FlaskView):
                 "test_username_neg": "adfjf393rfjffkjd",
                 "test_status": "f",
                 "tested_at": "2016-01-01T00:00:00.000000+00:00",
+                "headers": {"referer": "http://www.google.com"},
             },
 
         :<header Content-Type: application/json
         :<header X-Auth: the client's auth token
-        :>json string name: name of site
-        :>json string url: username search url for the site
-        :>json string category: category of the site
-        :>json string test_username_pos: username that exists on site
+        :<json string name: name of site
+        :<json string url: username search url for the site
+        :<json string category: category of the site
+        :<json string test_username_pos: username that exists on site
             (used for testing)
-        :>json string test_username_neg: username that does not
+        :<json string test_username_neg: username that does not
             exist on site (used for testing)
+        :<json array headers: custom headers
 
         :>header Content-Type: application/json
         :>json int id: unique identifier for site
@@ -301,6 +313,7 @@ class SiteView(FlaskView):
             (used for testing)
         :>json str test_username_neg: username that does not
             exist on site (used for testing)
+        :>json array headers: custom headers
 
         :status 202: updated
         :status 400: invalid request body
@@ -320,7 +333,7 @@ class SiteView(FlaskView):
         # Validate data and set attributes
         if 'name' in request_json:
             validate_json_attr('name', SITE_ATTRS, request_json)
-            site.name = request_json['name'].lower().strip()
+            site.name = request_json['name'].strip()
 
         if 'url' in request_json:
             validate_json_attr('url', SITE_ATTRS, request_json)
@@ -343,11 +356,12 @@ class SiteView(FlaskView):
             status = request_json['status_code']
             site.status_code = None if status is None else int(status)
 
-        if (request_json['match_type'] is None or \
+        if (request_json['match_type'] is None or
             request_json['match_expr'] is None) and \
-            request_json['status_code'] is None:
-            raise BadRequest('At least one of the following is required: '
-                'status code or page match.')
+                request_json['status_code'] is None:
+                    raise BadRequest('At least one of the '
+                                     'following is required: '
+                                     'status code or page match.')
 
         if 'test_username_pos' in request_json:
             validate_json_attr('test_username_pos', SITE_ATTRS, request_json)
@@ -360,6 +374,9 @@ class SiteView(FlaskView):
             site.test_username_neg = (request_json['test_username_neg']
                                       .lower()
                                       .strip())
+        if 'headers' in request_json:
+            validate_json_attr('headers', SITE_ATTRS, request_json)
+            site.headers = request_json['headers']
 
         # Save the updated site
         try:

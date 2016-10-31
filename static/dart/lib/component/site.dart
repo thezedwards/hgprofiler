@@ -49,6 +49,9 @@ class SiteComponent extends Object
     String newSiteTestUsernamePos, newSiteTestUsernamePosUrl;
     String newSiteTestUsernameNeg, newSiteTestUsernameNegUrl;
     String newSiteStatusCode;
+    List<String>  siteHeaderKeys = new List<String>(); 
+    Map<String, String> siteHeaders = new Map<String, String>();
+    Map<String, String> newSiteHeaders = new Map<String, String>();
     Pager pager;
     Result result;
     String query;
@@ -58,7 +61,7 @@ class SiteComponent extends Object
     Map<String,Site> sites;
     List<String> siteCategories;
     List<String> siteIds;
-    bool showAdd = false;
+    bool showAddEdit = false;
     bool submittingSite = false;
     String testError;
     int testSiteId;
@@ -90,7 +93,7 @@ class SiteComponent extends Object
         this._queryWatcher = new QueryWatcher(
             rh,
             ['page', 'rpp'],
-            this.fetchCurrentPage
+            this._fetchCurrentPage
         );
 
         // Add event listeners...
@@ -101,20 +104,19 @@ class SiteComponent extends Object
 
         this._fetchCategories();
         this._fetchMatchTypes();
-        this.fetchCurrentPage();
+        this._fetchCurrentPage();
     }
 
     /// Generate random string
     String randAlphaNumeric(int length) {
         math.Random rnd = new math.Random();
-    List<int> values = new List<int>.generate(32, (i) => rnd.nextInt(256));
-    //return(CryptoUtils.bytesToBase64(values).replaceAll(new RegExp('[=/+]'), ''));
-    String str = BASE64.encode(values).replaceAll(new RegExp('[=/+]'), '').substring(0, length);
-    return str;
+        List<int> values = new List<int>.generate(32, (i) => rnd.nextInt(256));
+        String str = BASE64.encode(values).replaceAll(new RegExp('[=/+]'), '').substring(0, length);
+        return str;
     }
 
     /// Show the "add site" dialog.
-    void showAddDialog(String mode) {
+    void showAddEditDialog(String mode) {
         if(mode == 'edit') {
             this.dialogTitle = 'Edit Site';
             this.dialogClass = 'panel-info';
@@ -131,13 +133,15 @@ class SiteComponent extends Object
             this.newSiteCategoryDescription = 'Select a category';
             this.newSiteUrl = null;
             this.editSiteId = null;
+            this.siteHeaderKeys = new List<String>();
+            this.siteHeaders = new Map<String, String>();
         }
-        this.showAdd = true;
+        this.showAddEdit = true;
         this.siteError = null;
 
         this._inputEl = this._element.querySelector('#site-name');
         if (this._inputEl != null) {
-            // Allow Angular to digest showAdd before trying to focus. (Can't
+            // Allow Angular to digest showAddEdit before trying to focus. (Can't
             // focus a hidden element.)
             new Timer(new Duration(milliseconds: 100), () => this._inputEl.focus());
         }
@@ -149,8 +153,8 @@ class SiteComponent extends Object
     }
 
     /// Hide the add/edit sites dialog.
-    void hideAddDialog() {
-        this.showAdd = false;
+    void hideAddEditDialog() {
+        this.showAddEdit = false;
     }
 
     /// Select a category in the "Add Site" form.
@@ -177,8 +181,23 @@ class SiteComponent extends Object
     void showTestSitesDialog() {
         String selector = '#test-sites-modal';
         DivElement modalDiv = this._element.querySelector(selector);
-        this.fetchCurrentPage();
+        this._fetchCurrentPage();
         Modal.wire(modalDiv).show();
+    }
+
+    /// Set site headers
+    void _setNewSiteHeaders() {
+        this.newSiteHeaders = new Map<String, String>();
+        String selector = 'div[class*="custom-header"]';
+        DivElements divs = this._element.querySelectorAll(selector);
+        divs.forEach((div) {
+            String nameSelector = 'input[id*="custom-header-name"]';
+            String valueSelector = 'input[id*="custom-header-value"]';
+            InputElement nameInput = div.querySelector(nameSelector);
+            InputElement valueInput = div.querySelector(valueSelector);
+            this.newSiteHeaders[nameInput.value] = valueInput.value;
+        });
+        
     }
 
     /// Set site for deletion and show confirmation modal
@@ -200,6 +219,16 @@ class SiteComponent extends Object
         }
     }
 
+    /// Add empty map to siteHeaders for user to populate
+    void addHeader() {
+        this.siteHeaderKeys.add('');
+    }
+
+    void removeHeader(int index) {
+        this.siteHeaders.remove(this.siteHeaderKeys[index]);
+        this.siteHeaderKeys.removeAt(index);
+    }
+
     /// Set site to be edited and show add/edit dialog.
     void editSite(int id_) {
         this.newSiteName = this.sites[id_].name;
@@ -211,9 +240,16 @@ class SiteComponent extends Object
         this.newSiteTestUsernamePosUrl = this.sites[id_].testUsernamePosUrl;
         this.newSiteTestUsernameNeg = this.sites[id_].testUsernameNeg;
         this.newSiteTestUsernameNegUrl = this.sites[id_].testUsernameNegUrl;
+        this.siteHeaderKeys = new List<String>(); // reset new site headers
+        this.siteHeaders = new Map<String, String>();
+        this.sites[id_].headers.forEach((key, value) {
+            this.siteHeaderKeys.add(key);
+            this.siteHeaders[key] = value;
+        });
+
         this.newSiteUrl = this.sites[id_].url;
         this.editSiteId = id_;
-        this.showAddDialog('edit');
+        this.showAddEditDialog('edit');
     }
 
     void setScreenshotResult(int id, String type) {
@@ -238,7 +274,7 @@ class SiteComponent extends Object
     }
 
     /// Fetch a page of profiler sites.
-    void fetchCurrentPage() {
+    void _fetchCurrentPage() {
         this.loading++;
         String pageUrl = '/api/site/';
         Map urlArgs = {
@@ -329,6 +365,7 @@ class SiteComponent extends Object
     /// Validate site input form
     bool _validateSiteInput() {
         bool result = true;
+        this.siteError = null;
 
         if (this.newSiteCategory == '' || this.newSiteCategory == null) {
             this.siteError = 'You must select a site category.';
@@ -355,6 +392,17 @@ class SiteComponent extends Object
             result = false;
         }
 
+        this.newSiteHeaders.forEach((name, value) {
+            if (name == '' || name == null) {
+                this.siteError = 'You must enter a custom header name.';
+                result = false;
+            };
+            if (value == '' || value == null) {
+                this.siteError = 'You must enter a custom header value.';
+                result = false;
+            };
+        });
+
         return result;
     }
 
@@ -374,6 +422,7 @@ class SiteComponent extends Object
         this.siteError = null;
         this.submittingSite = true;
         this.loading++;
+        this._setNewSiteHeaders();
 
         // Validate input
         bool valid = this._validateSiteInput();
@@ -393,6 +442,7 @@ class SiteComponent extends Object
             'match_type': this._nullString(this.newSiteMatchType),
             'test_username_pos': this.newSiteTestUsernamePos,
             'test_username_neg': this.newSiteTestUsernameNeg,
+            'headers': this.newSiteHeaders,
         };
 
         Map body = {
@@ -404,8 +454,8 @@ class SiteComponent extends Object
             .then((response) {
                 String msg = 'Added site ${this.newSiteName}';
                 this._showMessage(msg, 'success', 3, true);
-                this.fetchCurrentPage();
-                this.showAdd = false;
+                this._fetchCurrentPage();
+                this.showAddEdit = false;
             })
             .catchError((response) {
                 this.siteError = response.data['message'];
@@ -469,6 +519,17 @@ class SiteComponent extends Object
     void saveSite(Event e, dynamic data, Function resetButton) {
         String pageUrl = '/api/site/${this.editSiteId}';
         this.loading++;
+        this.submittingSite = true;
+        this._setNewSiteHeaders();
+
+        // Validate input
+        bool valid = this._validateSiteInput();
+        if(!valid) {
+            this.submittingSite = false;
+            resetButton();
+            this.loading--;
+            return;
+        }
 
         Map site = {
             'name': this.newSiteName,
@@ -479,14 +540,16 @@ class SiteComponent extends Object
             'category': this.newSiteCategory,
             'test_username_pos': this.newSiteTestUsernamePos,
             'test_username_neg': this.newSiteTestUsernameNeg,
+            'headers': this.newSiteHeaders,
         };
 
         this.api
             .put(pageUrl, site, needsAuth: true)
             .then((response) {
+                window.console.debug(response);
                 String name = this.sites[this.editSiteId].name;
                 this.sites[this.editSiteId] = new Site.fromJson(response.data);
-                this.showAdd = false;
+                this.showAddEdit = false;
                 this._showMessage('Updated site ${name}', 'success', 3, true);
             })
             .catchError((response) {
@@ -495,6 +558,7 @@ class SiteComponent extends Object
             })
             .whenComplete(() {
                 this.loading--;
+                this.submittingSite = false;
                 resetButton();
             });
     }
@@ -503,6 +567,17 @@ class SiteComponent extends Object
     void saveAndTestSite(Event e, dynamic data, Function resetButton) {
         String pageUrl = '/api/site/${this.editSiteId}';
         this.loading++;
+        this.submittingSite = true;
+        this._setNewSiteHeaders();
+
+        // Validate input
+        bool valid = this._validateSiteInput();
+        if(!valid) {
+            this.submittingSite = false;
+            resetButton();
+            this.loading--;
+            return;
+        }
 
         Map body = {
             'name': this.newSiteName,
@@ -513,6 +588,7 @@ class SiteComponent extends Object
             'category': this.newSiteCategory,
             'test_username_pos': this.newSiteTestUsernamePos,
             'test_username_neg': this.newSiteTestUsernameNeg,
+            'headers': this.newSiteHeaders,
         };
 
         this.api
@@ -529,6 +605,7 @@ class SiteComponent extends Object
             })
             .whenComplete(() {
                 this.loading--;
+                this.submittingSite = false;
                 resetButton();
             });
     }
@@ -638,7 +715,7 @@ class SiteComponent extends Object
 
     /// Listen for site updates.
     // Only fetch page when sites are newly created or deleted.
-    // ToDo: Create and add sites locally, rather than use fetchCurrentPage()
+    // ToDo: Create and add sites locally, rather than use _fetchCurrentPage()
     // - this requires some conditional logic to determine whether the site should be part
     // of the current paginated view.
     void _siteListener(Event e) {

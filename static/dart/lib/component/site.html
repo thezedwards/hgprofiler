@@ -12,7 +12,7 @@
   <div class='clear'></div>
 </div>
 
-<div ng-show="showAdd" class="row">
+<div ng-show="showAddEdit" class="row">
   <div class="col-sm-12 pull-right">
     <div class="panel {{dialogClass}}">
       <div class="panel-heading">
@@ -120,6 +120,57 @@
                          ng-keypress='handleAddSiteKeypress($event)'
                          ng-disabled='submittingSite'
                          placeholder='Enter username that does not exist on site.'>
+                </div>
+              </div>
+
+              <div class='form-group custom-header' ng-repeat="key in siteHeaderKeys">
+                <div class='col-sm-2'><strong>Custom Header</strong></div>
+                <div class="col-sm-3">
+                  <label for="custom-header-name-$index">Name*</label>
+                  <input type='text'
+                         class='form-control'
+                         id="custom-header-name-$index"
+                         size='15'
+                         value="{{key}}"
+                         ng-disabled='submittingSite'
+                         placeholder='Enter header name.'>
+                </div>
+                <div class="col-sm-5">
+                  <label for="custom-header-value-$index">
+                    Value*
+                  </label>
+                   <input type='text'
+                          class='form-control'
+                          id="custom-header-value-$index"
+                          size='15'
+                          value='{{siteHeaders[key]}}'
+                          ng-disabled='submittingSite'
+                          placeholder='Enter header value.'>
+                </div>
+                <div class='col-sm-1'>
+                  <button class="btn btn-sm btn-link"
+                          ng-click="removeHeader($index)">
+                    <i class="fa fa-minus-circle danger"></i>
+                  </button>
+                </div>
+                <div class='col-sm-1'>
+                  <button ng-show="$last"
+                          ng-click="addHeader()"
+                          class="btn btn-sm btn-link">
+                    <i class="fa fa-plus-circle success"></i>
+                  </button>
+                </div>
+              </div>
+
+              <div class='form-group' ng-show="siteHeaderKeys.length == 0">
+                <div class='col-sm-2'>
+                  <strong>Custom Header</strong>
+                </div>
+                <div class='col-sm-2'>
+                  <button class="btn btn-sm btn-link"
+                          ng-click="addHeader()">
+                    <i class="fa fa-plus-circle success"></i> Add
+                  </button>
                 </div>
               </div>
 
@@ -257,7 +308,7 @@
             <div class="form-group">
               <div class="pull-right">
                 <button class='btn btn-default'
-                        ng-click='hideAddDialog()'
+                        ng-click='hideAddEditDialog()'
                         ng-disabled='submittingSite'>
                   Cancel
                 </button>
@@ -317,14 +368,14 @@
         of {{pager.totalResults | number}} sites.
       </div>
       <button class='btn btn-success btn-sm pull-right'
-              ng-disabled='showAdd'
+              ng-disabled='showAddEdit'
               id='add-site-btn'
-              ng-click='showAddDialog("add")'>
+              ng-click='showAddEditDialog("add")'>
         <i class='fa fa-plus'></i>
         Add Sites
       </button>
       <button class='btn btn-info btn-sm pull-right btn-space'
-              ng-disabled='showAdd'
+              ng-disabled='showAddEdit'
               ng-click="showTestSitesDialog()"
               id='test-sites-btn'>
         <i class='fa fa-wrench'></i>
@@ -403,7 +454,7 @@
                 <td class="text-center button-col">
                   <button type='button'
                           ng-click='testSite(id)'
-                          ng-disabled='showAdd || awaitingTestResult(id)'
+                          ng-disabled='showAddEdit || awaitingTestResult(id)'
                           class='btn btn-sm btn-primary'>
                           <i class="fa fa-wrench"></i>
                   </button>
@@ -411,14 +462,14 @@
                 <td class="text-center button-col">
                   <button type='button'
                           ng-click='editSite(id)'
-                          ng-disabled='showAdd || awaitingTestResult(id)'
+                          ng-disabled='showAddEdit || awaitingTestResult(id)'
                           class='btn btn-sm btn-primary'>
                           <i class="fa fa-pencil"></i>
                   </button>
                 </td>
                  <td class="text-center button-col">
                   <button type='button'
-                     ng-disabled='showAdd || awaitingTestResult(id)'
+                     ng-disabled='showAddEdit || awaitingTestResult(id)'
                      ng-click='setDeleteId(id)'
                      class='btn btn-sm btn-danger'>
                     <i class='fa fa-trash'></i>

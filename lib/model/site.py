@@ -1,6 +1,7 @@
 from sqlalchemy import (Boolean,
                         Column,
                         DateTime,
+                        PickleType,
                         Enum,
                         ForeignKey,
                         Integer,
@@ -57,10 +58,11 @@ class Site(Base):
                                    cascade='all')
     tested_at = Column(DateTime, nullable=True)
     valid = Column(Boolean, nullable=False, default=False)
+    headers = Column(PickleType, nullable=True, default={})
 
     def __init__(self, name, url, category, test_username_pos,
                  status_code=None, match_type=None, match_expr=None,
-                 test_username_neg=None):
+                 test_username_neg=None, headers={}):
         ''' Constructor. '''
 
         self.name = name
@@ -70,6 +72,7 @@ class Site(Base):
         self.match_type = match_type or 'text'
         self.match_expr = match_expr
         self.test_username_pos = test_username_pos
+        self.headers = headers
 
         if test_username_neg is None:
             self.test_username_neg = random_string(16)
@@ -112,6 +115,7 @@ class Site(Base):
             'test_result_neg': test_result_neg,
             'tested_at': tested_at,
             'valid': self.valid,
+            'headers': self.headers
         }
 
     def get_url(self, username):
