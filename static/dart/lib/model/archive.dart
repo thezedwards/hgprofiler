@@ -5,7 +5,7 @@ class Archive {
     String trackerId;
     DateTime date;
     String username;
-    Map group;
+    Map category;
     int siteCount;
     int foundCount;
     int notFoundCount;
@@ -15,13 +15,13 @@ class Archive {
     // Errors related to creating or loading this profile.
     String error;
 
-    Archive(String trackerId, DateTime date, String username, Map group,
+    Archive(String trackerId, DateTime date, String username, Map category,
             int siteCount, int foundCount, int notFoundCount, int errorCount,
             String zipFileUrl) {
         this.trackerId = trackerId;
         this.date = date;
         this.username = username;
-        this.group = group;
+        this.category = category;
         this.siteCount = siteCount;
         this.foundCount = foundCount;
         this.notFoundCount = notFoundCount;
@@ -34,7 +34,7 @@ class Archive {
         this.id = json['id'];
         this.date = json['date'];
         this.username = json['username'];
-        this.group = json['group'];
+        this.category = json['category'];
         this.siteCount = json['site_count'];
         this.foundCount = json['found_count'];
         this.notFoundCount = json['not_found_count'];

@@ -474,7 +474,6 @@ class SiteComponent extends Object
         }
     }
 
-
     /// Trigger test site when the user presses enter in the test site input.
     void handleTestSiteKeypress(Event e) {
         if (e.charCode == 13) {
@@ -753,10 +752,10 @@ class SiteComponent extends Object
                 if (this.sites.containsKey(site.id)) {
                   this.sites[site.id] = site;
                 }
-                this._showMessage('Site "${json["name"]}" updated.', 'info', 3);
+                this._showMessage('Site "${json["name"]}" updated.', 'success', 3);
             }
             else if (json['status'] == 'deleted') {
-                this._showMessage('Site "${json["name"]}" deleted.', 'danger', 3);
+                this._showMessage('Site "${json["name"]}" deleted.', 'sucess', 3);
                 this._fetchCurrentPage();
             }
         }

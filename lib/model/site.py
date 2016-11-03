@@ -30,7 +30,6 @@ class Site(Base):
     id = Column(Integer, primary_key=True)
     name = Column(String(255), nullable=False)
     url = Column(String(255), nullable=False)
-    category = Column(String(255), nullable=False)
     status_code = Column(Integer, nullable=True)
     match_type = Column(Enum(*tuple(MATCH_TYPES.keys()), name='match_type'))
     match_expr = Column(String(255), nullable=True)
@@ -67,7 +66,6 @@ class Site(Base):
 
         self.name = name
         self.url = url
-        self.category = category
         self.status_code = status_code
         self.match_type = match_type or 'text'
         self.match_expr = match_expr
@@ -102,7 +100,6 @@ class Site(Base):
             'id': self.id,
             'name': self.name,
             'url': self.url,
-            'category': self.category,
             'status_code': self.status_code,
             'match_type': self.match_type,
             'match_type_description': self.MATCH_TYPES[self.match_type],

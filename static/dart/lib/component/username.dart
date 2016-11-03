@@ -9,7 +9,7 @@ import 'package:hgprofiler/component/pager.dart';
 import 'package:hgprofiler/component/title.dart';
 import 'package:hgprofiler/model/archive.dart';
 import 'package:hgprofiler/model/result.dart';
-import 'package:hgprofiler/model/group.dart';
+import 'package:hgprofiler/model/category.dart';
 import 'package:hgprofiler/rest_api.dart';
 import 'package:hgprofiler/sse.dart';
 
@@ -31,9 +31,9 @@ class UsernameComponent implements ShadowRootAware {
     int found;
     String filter;
     String filterDescription = 'All';
-    Group selectedGroup;
-    List<Group> groups;
-    String groupDescription = 'All Sites';
+    Category selectedCategory;
+    List<Category> categories;
+    String categoryDescription = 'All Sites';
     int loading = 0;
     String trackerId;
     List<Result> results;
@@ -45,7 +45,7 @@ class UsernameComponent implements ShadowRootAware {
     Result screenshotResult;
     String screenshotClass;
     int totalResults;
-    int totalGroups;
+    int totalCategories;
     String username;
     String sort, sortDescription;
     List<String> urls;
@@ -80,7 +80,7 @@ class UsernameComponent implements ShadowRootAware {
             }),
         ]);
 
-        this._fetchGroups();
+        this._fetchCategories();
     }
 
     // Request username search from background workers.
@@ -104,8 +104,8 @@ class UsernameComponent implements ShadowRootAware {
             'usernames': [this.query]
         };
 
-        if (this.selectedGroup != null) {
-            urlArgs['group'] = this.selectedGroup.id;
+        if (this.selectedCategory != null) {
+            urlArgs['category'] = this.selectedCategory.id;
         }
 
         this.api
@@ -121,12 +121,12 @@ class UsernameComponent implements ShadowRootAware {
             .whenComplete(() {this.submittingUsername = false;});
     }
 
-    void setGroup(Group group) {
-        this.selectedGroup = group;
-        if(group == null) {
-            this.groupDescription = 'All Sites';
+    void setCategory(Category category) {
+        this.selectedCategory = category;
+        if(category == null) {
+            this.categoryDescription = 'All Sites';
         } else {
-            this.groupDescription = group.name;
+            this.categoryDescription = category.name;
         }
     }
 
@@ -168,25 +168,25 @@ class UsernameComponent implements ShadowRootAware {
         return false;
     }
 
-    /// Fetch a page of profiler site groups.
-    Future _fetchPageOfGroups(page) {
+    /// Fetch a page of profiler site categories.
+    Future _fetchPageOfCategories(page) {
         Completer completer = new Completer();
         this.loading++;
-        String groupUrl = '/api/group/';
+        String categoryUrl = '/api/category/';
         Map urlArgs = {
             'page': page,
             'rpp': 100,
         };
         int totalCount = 0;
         this.api
-            .get(groupUrl, urlArgs: urlArgs, needsAuth: true)
+            .get(categoryUrl, urlArgs: urlArgs, needsAuth: true)
             .then((response) {
                 if (response.data.containsKey('total_count')) {
-                    this.totalGroups = response.data['total_count'];
+                    this.totalCategories = response.data['total_count'];
                 }
-                response.data['groups'].forEach((group) {
-                    if (!this.groups.contains(group)) {
-                        this.groups.add(new Group.fromJson(group));
+                response.data['categories'].forEach((category) {
+                    if (!this.categories.contains(category)) {
+                        this.categories.add(new Category.fromJson(category));
                     }
                 });
                 this.loading--;
@@ -198,18 +198,18 @@ class UsernameComponent implements ShadowRootAware {
         return completer.future;
     }
 
-    // Fetch all profiler groups.
-    Future _fetchGroups() {
+    // Fetch all profiler categories.
+    Future _fetchCategories() {
         Completer completer = new Completer();
         Map result;
         this.error = null;
         int page = 1;
-        this.groups = new List();
-        this._fetchPageOfGroups(page)
+        this.categories = new List();
+        this._fetchPageOfCategories(page)
             .then((_) {
-                int lastPage = (this.totalGroups/100).ceil();
+                int lastPage = (this.totalCategories/100).ceil();
                 page++; while(page <= lastPage) {
-                    this._fetchPageOfGroups(page);
+                    this._fetchPageOfCategories(page);
                     page++;
                 }
                 completer.complete();

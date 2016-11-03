@@ -10,7 +10,7 @@ import 'package:hgprofiler/rest_api.dart';
 class SseController {
 
     Stream<Event> onArchive;
-    Stream<Event> onGroup;
+    Stream<Event> onCategory;
     Stream<Event> onResult;
     Stream<Event> onSite;
     Stream<Event> onWorker;
@@ -31,7 +31,7 @@ class SseController {
 
         // Set up event streams.
         this.onArchive = this._eventSource.on['archive'];
-        this.onGroup = this._eventSource.on['group'];
+        this.onCategory = this._eventSource.on['category'];
         this.onResult = this._eventSource.on['result'];
         this.onSite = this._eventSource.on['site'];
         this.onWorker = this._eventSource.on['worker'];

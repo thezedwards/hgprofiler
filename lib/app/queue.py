@@ -51,7 +51,7 @@ def remove_unused_queues(redis):
                 redis.srem('rq:queues', 'rq:queue:{}'.format(queue.name))
 
 
-def schedule_username(username, site, group_id,
+def schedule_username(username, site, category_id,
                       total, tracker_id, test=False):
     '''
     Queue a job to fetch results for the specified username from the specified
@@ -64,7 +64,7 @@ def schedule_username(username, site, group_id,
     kwargs = {
         'username': username,
         'site_id': site.id,
-        'group_id': group_id,
+        'category_id': category_id,
         'total': total,
         'tracker_id': tracker_id,
         'test': test
@@ -83,12 +83,12 @@ def schedule_username(username, site, group_id,
     return job.id
 
 
-def schedule_archive(username, group_id, tracker_id):
+def schedule_archive(username, category_id, tracker_id):
     ''' Queue a job to archive results for the job id. '''
 
     job = _archive_queue.enqueue_call(
         func=worker.archive.create_archive,
-        args=[username, group_id, tracker_id],
+        args=[username, category_id, tracker_id],
         timeout=_redis_worker['archive_timeout']
     )
 

@@ -7,12 +7,12 @@ import app.queue
 from app.authorization import login_required
 from app.rest import validate_request_json
 from helper.functions import random_string
-from model import Group, Site
+from model import Category, Site
 
 
 USERNAME_ATTRS = {
     'usernames': {'type': list, 'required': True},
-    'group': {'type': int, 'required': False},
+    'category': {'type': int, 'required': False},
     'site': {'type': int, 'required': False},
     'test': {'type': bool, 'required': False},
 }
@@ -39,7 +39,7 @@ class UsernameView(FlaskView):
                     "janedoe",
                     ...
                 ],
-                "group": 3,
+                "category": 3,
                 "test": False,
             }
 
@@ -56,7 +56,7 @@ class UsernameView(FlaskView):
         :<header Content-Type: application/json
         :<header X-Auth: the client's auth token
         :>json list usernames: a list of usernames to search for
-        :>json int group: ID of site group to use (optional)
+        :>json int category: ID of site category to use (optional)
         :>json int site: ID of site to search (optional)
         :>json bool test: test results (optional, default: false)
 
@@ -70,8 +70,8 @@ class UsernameView(FlaskView):
         :status 401: authentication required
         '''
         test = False
-        group = None
-        group_id = None
+        category = None
+        category_id = None
         jobs = []
         tracker_ids = dict()
         redis = g.redis
@@ -86,17 +86,18 @@ class UsernameView(FlaskView):
         if len(request_json['usernames']) == 0:
             raise BadRequest('At least one username is required')
 
-        if 'group' in request_json and 'site' in request_json:
-            raise BadRequest('Supply either `group` or `site`.')
+        if 'category' in request_json and 'site' in request_json:
+            raise BadRequest('Supply either `category` or `site`.')
 
-        if 'group' in request_json:
-            group_id = request_json['group']
-            group = g.db.query(Group).filter(Group.id == group_id).first()
+        if 'category' in request_json:
+            category_id = request_json['category']
+            category = g.db.query(Category) \
+                .filter(Category.id == category_id).first()
 
-            if group is None:
-                raise NotFound("Group '%s' does not exist." % group_id)
+            if category is None:
+                raise NotFound("Category '%s' does not exist." % category_id)
             else:
-                group_id = group.id
+                category_id = category.id
 
         if 'site' in request_json:
             site_id = request_json['site']
@@ -108,17 +109,22 @@ class UsernameView(FlaskView):
         if 'test' in request_json:
             test = request_json['test']
 
-        if group:
-            sites = group.sites
+        if category:
+            sites = category.sites
         elif site:
-            sites = g.db.query(Site).filter(Site.id == site.id)
+            sites = g.db.query(Site).filter(Site.id == site.id).all()
         else:
-            sites = g.db.query(Site)
+            sites = g.db.query(Site).all()
 
         # Only check valid sites.
-        sites = sites.filter(Site.valid == True).all() # noqa
+        valid_sites = []
+        for site in sites:
+            if site.valid:
+                valid_sites.append(site)
 
-        if len(sites) == 0:
+        # sites = sites.filter(Site.valid == True).all() # noqa
+
+        if len(valid_sites) == 0:
             raise NotFound('No valid sites to check')
 
         for username in request_json['usernames']:
@@ -128,14 +134,14 @@ class UsernameView(FlaskView):
             tracker_ids[username] = tracker_id
             redis.set(tracker_id, 0)
             redis.expire(tracker_id, 600)
-            total = len(sites)
+            total = len(valid_sites)
 
             # Queue a job for each site.
-            for site in sites:
+            for site in valid_sites:
                 job_id = app.queue.schedule_username(
                     username=username,
                     site=site,
-                    group_id=group_id,
+                    category_id=category_id,
                     total=total,
                     tracker_id=tracker_id,
                     test=test
@@ -143,7 +149,7 @@ class UsernameView(FlaskView):
                 jobs.append({
                     'id': job_id,
                     'username': username,
-                    'group': group_id,
+                    'category': category_id,
                 })
 
         response = jsonify(tracker_ids=tracker_ids)

@@ -80,7 +80,7 @@ def create_zip(filename, results):
     return zip_file.id
 
 
-def create_archive(username, group_id, tracker_id):
+def create_archive(username, category_id, tracker_id):
     """
     Archive summary of results in the database and store
     a zip archive in the data directory.
@@ -115,7 +115,7 @@ def create_archive(username, group_id, tracker_id):
 
     archive = Archive(tracker_id=tracker_id,
                       username=username,
-                      group_id=group_id,
+                      category_id=category_id,
                       site_count=site_count,
                       found_count=found_count,
                       not_found_count=not_found_count,
