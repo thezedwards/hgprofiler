@@ -174,23 +174,6 @@
                 </div>
               </div>
 
-              <div class="form-group">
-                <label for="category" class="col-sm-2">Category*</label>
-                <div class="col-sm-10">
-                  <button type='button'
-                          class='btn btn-default dropdown-toggle'
-                          id="category"
-                          data-toggle='dropdown'
-                          ng-disabled='submittingSite'
-                          aria-expanded='false'>
-                          {{newSiteCategoryDescription}} <span class='caret'></span>
-                  </button>
-                  <ul class='dropdown-menu sort-by' role='menu'>
-                    <li ng-repeat="category in siteCategories"><a ng-click='setSiteCategory(category)'>{{category}}</a></li>
-                  </ul>
-                </div>
-              </div>
-
               <div ng-show='siteError != null' class='alert alert-danger' role='alert'>
                 <p>{{siteError}}</p>
               </div>
@@ -399,7 +382,6 @@
               <tr>
                 <th>Name</th>
                 <th class="hidden-sm hidden-xs">URL</th>
-                <th class="hidden-sm hidden-xs">Category</th>
                 <th class="text-center">Positive Test</th>
                 <th class="text-center">Negative Test</th>
                 <th class="text-center hidden-sm hidden-xs">Tested</th>
@@ -415,9 +397,6 @@
                 </td>
                 <td class="url-col hidden-sm hidden-xs">
                   {{sites[id].url}}
-                </td>
-                <td class="hidden-sm hidden-xs">
-                  {{sites[id].category}}
                 </td>
                 <td class="text-center">
                   <span ng-if="sites[id].testResultPos != null && !awaitingTestResult(id)">

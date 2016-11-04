@@ -59,7 +59,7 @@ class Site(Base):
     valid = Column(Boolean, nullable=False, default=False)
     headers = Column(PickleType, nullable=True, default={})
 
-    def __init__(self, name, url, category, test_username_pos,
+    def __init__(self, name, url, test_username_pos,
                  status_code=None, match_type=None, match_expr=None,
                  test_username_neg=None, headers={}):
         ''' Constructor. '''
