@@ -11,43 +11,43 @@ import 'package:hgprofiler/query_watcher.dart';
 import 'package:hgprofiler/component/breadcrumbs.dart';
 import 'package:hgprofiler/component/pager.dart';
 import 'package:hgprofiler/component/title.dart';
-import 'package:hgprofiler/model/group.dart';
+import 'package:hgprofiler/model/category.dart';
 import 'package:hgprofiler/model/site.dart';
 import 'package:hgprofiler/rest_api.dart';
 import 'package:hgprofiler/sse.dart';
 
 /// A component for viewing and modifying credentials.
 @Component(
-    selector: 'group-list',
-    templateUrl: 'packages/hgprofiler/component/group/list.html',
+    selector: 'category-list',
+    templateUrl: 'packages/hgprofiler/component/category/list.html',
     useShadowDom: false
 )
-class GroupListComponent extends Object
+class CategoryListComponent extends Object
                     implements ShadowRootAware {
 
-    bool allSites;
+    bool allSites = false;
     List<Breadcrumb> crumbs = [
         new Breadcrumb('Profiler', '/'),
-        new Breadcrumb('Groups', '/group'),
+        new Breadcrumb('Categories', '/category'),
     ];
-    int deleteGroupId;
+    int deleteCategoryId;
     String dialogTitle;
     String dialogClass;
-    int editGroupId;
-    List<int> editGroupSiteIds;
+    int editCategoryId;
+    List<int> editCategorySiteIds;
     final Element _element;
     List<CheckboxInputElement> editSiteCheckboxes;
-    String groupError;
-    List<String> groupIds;
-    Map<Map> groups;
+    String categoryError;
+    List<String> categoryIds;
+    Map<Map> categories;
     int loading = 0;
     List<Map> messages = new List<Map>();
-    String newGroupName;
+    String newCategoryName;
     Pager pager;
     bool showAdd = false;
     List<Site> sites;
     String siteSearch = '';
-    bool submittingGroup = false;
+    bool submittingCategory = false;
     int totalSites;
 
     InputElement _inputEl;
@@ -59,10 +59,10 @@ class GroupListComponent extends Object
     final TitleService _ts;
 
     /// Constructor.
-    GroupListComponent(this._auth, this._api, this._element,
+    CategoryListComponent(this._auth, this._api, this._element,
                        this._router, this._rp, this._sse, this._ts) {
 
-        this._ts.title = 'Groups';
+        this._ts.title = 'Categories';
 
         RouteHandle rh = this._rp.route.newHandle();
         this._queryWatcher = new QueryWatcher(
@@ -73,7 +73,7 @@ class GroupListComponent extends Object
 
         // Add event listeners...
         UnsubOnRouteLeave(rh, [
-            this._sse.onGroup.listen(this._groupListener),
+            this._sse.onCategory.listen(this._categoryListener),
         ]);
 
         this._fetchSites();
@@ -83,12 +83,12 @@ class GroupListComponent extends Object
     /// Show the "add profile" dialog.
     void showAddDialog(String mode) {
         if(mode == 'edit') {
-            this.dialogTitle = 'Edit Group';
+            this.dialogTitle = 'Edit Category';
             this.dialogClass = 'panel-info';
         } else {
-            this.dialogTitle = 'Add Group';
+            this.dialogTitle = 'Add Category';
             this.dialogClass = 'panel-success';
-            this.newGroupName = '';
+            this.newCategoryName = '';
             String selector = 'input[name="add-site-checkbox"][type="checkbox"]';
             List<CheckboxInputElement> siteCheckboxes = this._element.querySelectorAll(selector);
             siteCheckboxes.forEach((checkbox) {
@@ -100,9 +100,9 @@ class GroupListComponent extends Object
         }
 
         this.showAdd = true;
-        this.groupError = null;
+        this.categoryError = null;
 
-        this._inputEl = this._element.querySelector('#group-name');
+        this._inputEl = this._element.querySelector('#category-name');
         if (this._inputEl != null) {
             // Allow Angular to digest showAdd before trying to focus. (Can't
             // focus a hidden element.)
@@ -112,41 +112,41 @@ class GroupListComponent extends Object
 
     /// Get a reference to this element.
     void onShadowRoot(ShadowRoot shadowRoot) {
-        this._inputEl = this._element.querySelector('.add-group-form input');
+        this._inputEl = this._element.querySelector('.add-category-form input');
     }
 
-    /// Show the "add groups" dialog.
+    /// Show the "add categories" dialog.
     void hideAddDialog() {
         this.showAdd = false;
-        this.editGroupId = null;
+        this.editCategoryId = null;
     }
 
-    /// Fetch a page of profiler groups.
+    /// Fetch a page of profiler categories.
     Future _fetchCurrentPage() {
         Completer completer = new Completer();
         this.loading++;
-        String pageUrl = '/api/group/';
+        String pageUrl = '/api/category/';
         Map urlArgs = {
             'page': this._queryWatcher['page'] ?? '1',
             'rpp': this._queryWatcher['rpp'] ?? '100',
         };
-        this.groups = new Map<Map>();
+        this.categories = new Map<Map>();
 
         this._api
             .get(pageUrl, urlArgs: urlArgs, needsAuth: true)
             .then((response) {
-                this.groupIds = new List<String>();
+                this.categoryIds = new List<String>();
 
-                response.data['groups'].forEach((group) {
-                    this.groups[group['id']] = {
-                        'name': group['name'],
+                response.data['categories'].forEach((category) {
+                    this.categories[category['id']] = {
+                        'name': category['name'],
                         'sites': new List.generate(
-                            group['sites'].length,
-                            (index) => new Site.fromJson(group['sites'][index])
+                            category['sites'].length,
+                            (index) => new Site.fromJson(category['sites'][index])
                         ),
                     };
                 });
-                this.groupIds = new List<String>.from(this.groups.keys);
+                this.categoryIds = new List<String>.from(this.categories.keys);
 
                 this.pager = new Pager(response.data['total_count'],
                                        int.parse(this._queryWatcher['page'] ?? '1'),
@@ -164,41 +164,38 @@ class GroupListComponent extends Object
         return completer.future;
     }
 
-
-    //void saveGroup(String id_, String key, dynamic value) {
-    void saveGroup(Event e, dynamic data, Function resetButton) {
+    void saveCategory(Event e, dynamic data, Function resetButton) {
         String selector = 'input[name="add-site-checkbox"][type="checkbox"]:checked';
         List<CheckboxInputElement> siteCheckboxes = this._element.querySelectorAll(selector);
-        this.editGroupSiteIds = new List();
+        this.editCategorySiteIds = new List();
         siteCheckboxes.forEach((checkbox) {
-            this.editGroupSiteIds.add(checkbox.value);
+            this.editCategorySiteIds.add(checkbox.value);
         });
 
         // Validate input
-        bool valid = this._validateGroupInput();
+        bool valid = this._validateCategoryInput();
         if(!valid) {
-            this.submittingGroup = false;
+            this.submittingCategory = false;
             resetButton();
             this.loading--;
             return;
         }
 
 
-        String pageUrl = '/api/group/${this.editGroupId}';
+        String pageUrl = '/api/category/${this.editCategoryId}';
         this.loading++;
 
         Map body = {
-            'name': this.newGroupName,
-            'sites':  this.editGroupSiteIds
+            'name': this.newCategoryName,
+            'sites':  this.editCategorySiteIds
         };
 
         this._api
             .put(pageUrl, body, needsAuth: true)
             .then((response) {
-                String name = this.sites[editGroupId]['name'];
                 this._fetchCurrentPage();
                 this.showAdd = false;
-                this._showMessage('Updated group ${this.newGroupName}', 'info', 3, true);
+                this._showMessage('Updated category ${this.newCategoryName}', 'success', 3, true);
             })
             .catchError((response) {
                 String msg = response.data['message'];
@@ -210,29 +207,29 @@ class GroupListComponent extends Object
             });
     }
 
-    /// Set group for deletion and show confirmation modal
+    /// Set category for deletion and show confirmation modal
     void setDeleteId(String id_) {
-        this.deleteGroupId = id_;
+        this.deleteCategoryId = id_;
         String selector = '#confirm-delete-modal';
         DivElement modalDiv = this._element.querySelector(selector);
         Modal.wire(modalDiv).show();
     }
 
-    /// Delete group specified by deleteGroupId.
-    void deleteGroup(Event e, dynamic data, Function resetButton) {
-        if(this.deleteGroupId == null) {
+    /// Delete category specified by deleteCategoryId.
+    void deleteCategory(Event e, dynamic data, Function resetButton) {
+        if(this.deleteCategoryId == null) {
             return;
         }
 
-        String pageUrl = '/api/group/${this.deleteGroupId}';
-        String name = this.groups[deleteGroupId]['name'];
+        String pageUrl = '/api/category/${this.deleteCategoryId}';
+        String name = this.categories[deleteCategoryId]['name'];
         this.loading++;
         Map body = {};
 
         this._api
             .delete(pageUrl, urlArgs: {}, needsAuth: true)
             .then((response) {
-                this._showMessage('Deleted group ${name}', 'danger', 3, true);
+                this._showMessage('Deleted category ${name}', 'success', 3, true);
                 this._fetchCurrentPage();
             })
             .catchError((response) {
@@ -246,19 +243,19 @@ class GroupListComponent extends Object
             });
     }
 
-    /// Set group to be edited and show add/edit dialog.
-    void editGroup(int id_) {
-        this.newGroupName = this.groups[id_]['name'];
+    /// Set category to be edited and show add/edit dialog.
+    void editCategory(int id_) {
+        this.newCategoryName = this.categories[id_]['name'];
         this.siteSearch = '';
-        this.editGroupId = id_;
+        this.editCategoryId = id_;
         this.showAddDialog('edit');
-        this.editGroupSiteIds = new List.generate(
-                this.groups[id_]['sites'].length,
-                (index) =>  this.groups[id_]['sites'][index].id);
+        this.editCategorySiteIds = new List.generate(
+                this.categories[id_]['sites'].length,
+                (index) =>  this.categories[id_]['sites'][index].id);
         String selector = 'input[name="add-site-checkbox"][type="checkbox"]';
         List<CheckboxInputElement> siteCheckboxes = this._element.querySelectorAll(selector);
         siteCheckboxes.forEach((checkbox) {
-            if (this.editGroupSiteIds.contains(int.parse(checkbox.value))) {
+            if (this.editCategorySiteIds.contains(int.parse(checkbox.value))) {
                 checkbox.checked = true;
             } else {
                 checkbox.checked = false;
@@ -267,40 +264,46 @@ class GroupListComponent extends Object
     }
 
     void toggleAddSites() {
+        if (this.allSites == false) {
+            this.allSites = true;
+        } else {
+            this.allSites = false;
+        }
+
         String selector = 'input[name="add-site-checkbox"][type="checkbox"]';
         List<CheckboxInputElement> siteCheckboxes = this._element.querySelectorAll(selector);
-        this.editGroupSiteIds = new List();
+        this.editCategorySiteIds = new List();
         siteCheckboxes.forEach((checkbox) {
             checkbox.checked = this.allSites;
         });
     }
 
-    void _validateGroupInput() {
+    void _validateCategoryInput() {
 
-        if (this.newGroupName == '' || this.newGroupName == null) {
-            this.groupError = 'You must enter a name for the group';
+        if (this.newCategoryName == '' || this.newCategoryName == null) {
+            this.categoryError = 'You must enter a name for the category';
             return  false;
         }
 
         var query  = $('input[name="add-site-checkbox"]:checked');
         if (query.length == 0) {
-            this.groupError = 'You must select at least one site';
+            this.categoryError = 'You must select at least one site';
             return false;
         }
 
         return true;
     }
 
-    void addGroup(Event e, dynamic data, Function resetButton) {
+    void addCategory(Event e, dynamic data, Function resetButton) {
         List<int> sites = new List();
         this.siteSearch = '';
-        String pageUrl = '/api/group/';
+        String pageUrl = '/api/category/';
         this.loading++;
 
         // Validate input
-        bool valid = this._validateGroupInput();
+        bool valid = this._validateCategoryInput();
         if(!valid) {
-            this.submittingGroup = false;
+            this.submittingCategory = false;
             resetButton();
             this.loading--;
             return;
@@ -312,41 +315,41 @@ class GroupListComponent extends Object
             sites.add(checkbox.value);
         });
 
-        Map group  = {
-            'name': this.newGroupName,
+        Map category  = {
+            'name': this.newCategoryName,
             'sites': sites
         };
 
         Map body = {
-            'groups': [group]
+            'categories': [category]
         };
 
         this._api
             .post(pageUrl, body, needsAuth: true)
             .then((response) {
-                String msg = 'Added group ${this.newGroupName}';
+                String msg = 'Added category ${this.newCategoryName}';
                 this._showMessage(msg, 'success', 3, true);
                 this._fetchCurrentPage();
                 this.showAdd = false;
             })
             .catchError((response) {
-                this.groupError = response.data['message'];
+                this.categoryError = response.data['message'];
             })
             .whenComplete(() {
                 this.loading--;
                 resetButton();
-                this.submittingGroup = false;
+                this.submittingCategory = false;
             });
     }
 
 
     /// Fetch a page of profiler sites.
-    Future _fetchPageOfSites(page) {
+    Future _fetchPageOfSites(int index) {
         Completer completer = new Completer();
         this.loading++;
         String siteUrl = '/api/site/';
         Map urlArgs = {
-            'page': page,
+            'page': index,
             'rpp': 100,
         };
         int totalCount = 0;
@@ -358,7 +361,8 @@ class GroupListComponent extends Object
                 if (response.data.containsKey('total_count')) {
                     this.totalSites = response.data['total_count'];
                 }
-                response.data['sites'].forEach((site) {
+                response.data['sites'].forEach((siteJson) {
+                    Site site = new Site.fromJson(siteJson);
                     if (!this.sites.contains(site)) {
                         this.sites.add(site);
                     }
@@ -396,27 +400,27 @@ class GroupListComponent extends Object
         return completer.future;
     }
 
-    /// Trigger add group when the user presses enter in the group input.
-    void handleAddGroupKeypress(Event e) {
+    /// Trigger add category when the user presses enter in the category input.
+    void handleAddCategoryKeypress(Event e) {
         if (e.charCode == 13) {
-            addGroup();
+            addCategory();
         }
     }
 
-    /// Listen for group updates.
-    void _groupListener(Event e) {
+    /// Listen for category updates.
+    void _categoryListener(Event e) {
         Map json = JSON.decode(e.data);
         window.console.debug(json);
 
         if (json['error'] == null) {
             if (json['status'] == 'created') {
-                this._showMessage('Group "${json["name"]}" created.', 'success', 3);
+                this._showMessage('Category "${json["name"]}" created.', 'success', 3);
             }
             else if (json['status'] == 'updated') {
-                this._showMessage('Group "${json["name"]}" updated.', 'info', 3);
+                this._showMessage('Category "${json["name"]}" updated.', 'info', 3);
             }
             else if (json['status'] == 'deleted') {
-                this._showMessage('Group "${json["name"]}" deleted.', 'danger', 3);
+                this._showMessage('Category "${json["name"]}" deleted.', 'danger', 3);
             }
             this._fetchCurrentPage();
         }

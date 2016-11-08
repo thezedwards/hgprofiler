@@ -34,7 +34,7 @@
             <thead>
               <tr>
                 <th>Username</th>
-                <th>Group</th>
+                <th>Category</th>
                 <th>Sites</th>
                 <th>Found</th>
                 <th>Errors</th>
@@ -49,8 +49,8 @@
                   {{archives[id].username}}
                 </td>
                 <td>
-                  <span ng-if='archives[id].group != null'>{{archives[id].group['name']}}</span>
-                  <span ng-if='archives[id].group == null'>All sites</span>
+                  <span ng-if='archives[id].category != null'>{{archives[id].category['name']}}</span>
+                  <span ng-if='archives[id].category == null'>All sites</span>
                 </td>
                 <td>
                   {{archives[id].siteCount}}

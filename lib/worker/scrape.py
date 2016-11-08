@@ -43,7 +43,7 @@ def test_site(site_id, tracker_id, request_timeout=10):
     # Do positive test.
     result_pos_id = check_username(username=site.test_username_pos,
                                    site_id=site_id,
-                                   group_id=None,
+                                   category_id=None,
                                    total=2,
                                    tracker_id=tracker_id + '-1',
                                    test=True)
@@ -53,7 +53,7 @@ def test_site(site_id, tracker_id, request_timeout=10):
     # Do negative test.
     result_neg_id = check_username(username=site.test_username_neg,
                                    site_id=site_id,
-                                   group_id=None,
+                                   category_id=None,
                                    total=2,
                                    tracker_id=tracker_id + '-2',
                                    test=True)
@@ -85,7 +85,7 @@ def test_site(site_id, tracker_id, request_timeout=10):
     redis.publish('site', json.dumps(msg))
 
 
-def check_username(username, site_id, group_id, total,
+def check_username(username, site_id, category_id, total,
                    tracker_id, request_timeout=10, test=False):
     """
     Check if `username` exists on the specified site.
@@ -128,7 +128,7 @@ def check_username(username, site_id, group_id, total,
 
         # If this username search is complete, then queue an archive job.
         if current == total:
-            app.queue.schedule_archive(username, group_id, tracker_id)
+            app.queue.schedule_archive(username, category_id, tracker_id)
 
     worker.finish_job()
 

@@ -13,7 +13,7 @@ from sqlalchemy.schema import (DropConstraint,
 from app.config import get_path
 import app.database
 import cli
-from model import Base, Configuration, User, Site, File
+from model import Base, Configuration, User, Site, File, Category
 import model.user
 
 
@@ -55,6 +55,7 @@ class DatabaseCli(cli.BaseCli):
         self._create_fixture_images(config)
         self._create_fixture_users(config)
         self._create_fixture_sites(config)
+        self._create_fixture_categories(config)
 
     def _create_fixture_configurations(self, config):
         ''' Create configurations. '''
@@ -120,7 +121,6 @@ class DatabaseCli(cli.BaseCli):
         about_me = Site(
             name='About.me',
             url='http://about.me/%s',
-            category='social',
             status_code=200,
             test_username_pos='bob'
         )
@@ -129,7 +129,6 @@ class DatabaseCli(cli.BaseCli):
         anobii = Site(
             name='Anobii',
             url='http://www.anobii.com/%s/books',
-            category='books',
             match_type='css',
             match_expr='h1.person_heading',
             test_username_pos='bob'
@@ -139,7 +138,6 @@ class DatabaseCli(cli.BaseCli):
         ask_fm = Site(
             name='Ask FM',
             url='http://ask.fm/%s',
-            category='social',
             status_code=200,
             test_username_pos='tipsofschool'
         )
@@ -148,7 +146,6 @@ class DatabaseCli(cli.BaseCli):
         audioboom = Site(
             name='Audioboom',
             url='http://audioboom.com/%s',
-            category='music',
             status_code=200,
             test_username_pos='bob'
         )
@@ -157,7 +154,6 @@ class DatabaseCli(cli.BaseCli):
         authorstream = Site(
             name='Authorstream',
             url='http://www.authorstream.com/%s/',
-            category='social',
             status_code=200,
             test_username_pos='tiikmconferences'
         )
@@ -166,7 +162,6 @@ class DatabaseCli(cli.BaseCli):
         badoo = Site(
             name='Badoo',
             url='http://badoo.com/%s/',
-            category='dating',
             status_code=200,
             test_username_pos='dave'
         )
@@ -175,7 +170,6 @@ class DatabaseCli(cli.BaseCli):
         behance = Site(
             name='Behance',
             url='https://www.behance.net/%s',
-            category='social',
             status_code=200,
             test_username_pos='juste'
         )
@@ -184,7 +178,6 @@ class DatabaseCli(cli.BaseCli):
         bitbucket = Site(
             name='Bitbucket',
             url='https://bitbucket.org/%s',
-            category='coding',
             status_code=200,
             test_username_pos='jespern'
         )
@@ -193,7 +186,6 @@ class DatabaseCli(cli.BaseCli):
         blip_fm = Site(
             name='Blip FM',
             url='http://blip.fm/%s',
-            category='music',
             status_code=200,
             test_username_pos='mark_till'
         )
@@ -202,7 +194,6 @@ class DatabaseCli(cli.BaseCli):
         blogmarks = Site(
             name='Blogmarks',
             url='http://blogmarks.net/user/%s',
-            category='social',
             match_type='css',
             match_expr='div#infos-user',
             test_username_pos='Krome'
@@ -212,7 +203,6 @@ class DatabaseCli(cli.BaseCli):
         blogspot = Site(
             name='Blogspot',
             url='http://%s.blogspot.co.uk',
-            category='social',
             status_code=200,
             test_username_pos='takingroot-jr'
         )
@@ -221,7 +211,6 @@ class DatabaseCli(cli.BaseCli):
         bodybuilding = Site(
             name='Bodybuilding',
             url='http://bodyspace.bodybuilding.com/%s/',
-            category='health',
             match_type='css',
             match_expr='div.BodyBanner',
             test_username_pos='Scarfdaddy'
@@ -231,7 +220,6 @@ class DatabaseCli(cli.BaseCli):
         break_com = Site(
             name='Break',
             url='http://www.break.com/user/%s',
-            category='video',
             match_type='css',
             match_expr='section.profile-head',
             test_username_pos='jenny'
@@ -241,7 +229,6 @@ class DatabaseCli(cli.BaseCli):
         cafemom = Site(
             name='Cafemom',
             url='http://www.cafemom.com/home/%s',
-            category='social',
             match_type='css',
             match_expr='div#member-info',
             test_username_pos='jane'
@@ -251,7 +238,6 @@ class DatabaseCli(cli.BaseCli):
         car_domain = Site(
             name='Car Domain',
             url='http://www.cardomain.com/member/%s/',
-            category='automotive',
             status_code=200,
             test_username_pos='dan'
         )
@@ -260,7 +246,6 @@ class DatabaseCli(cli.BaseCli):
         codeplex = Site(
             name='Codeplex',
             url='http://www.codeplex.com/site/users/view/%s',
-            category='coding',
             match_type='css',
             match_expr='h1.user_name',
             test_username_pos='dan'
@@ -270,7 +255,6 @@ class DatabaseCli(cli.BaseCli):
         colour_lovers = Site(
             name='Colour Lovers',
             url='http://www.colourlovers.com/lover/%s',
-            category='art and design',
             match_type='css',
             match_expr='div.column-container',
             test_username_pos='bob'
@@ -280,7 +264,6 @@ class DatabaseCli(cli.BaseCli):
         conferize = Site(
             name='Conferize',
             url='https://www.conferize.com/u/%s/',
-            category='business',
             match_type='css',
             match_expr='div.hero--user',
             test_username_pos='dan'
@@ -290,7 +273,6 @@ class DatabaseCli(cli.BaseCli):
         copy_taste = Site(
             name='Copytaste',
             url='http://copytaste.com/profile/%s',
-            category='social',
             status_code=200,
             test_username_pos='metegulec'
         )
@@ -299,7 +281,6 @@ class DatabaseCli(cli.BaseCli):
         cruisemates = Site(
             name='Cruisemates',
             url='http://www.cruisemates.com/forum/members/%s.html',
-            category='travel',
             match_type='css',
             match_expr='div#main_userinfo',
             test_username_pos='trip'
@@ -309,7 +290,6 @@ class DatabaseCli(cli.BaseCli):
         daily_motion = Site(
             name='Dailymotion',
             url='http://www.dailymotion.com/%s',
-            category='Video',
             status_code=200,
             test_username_pos='fanreviews'
         )
@@ -318,7 +298,6 @@ class DatabaseCli(cli.BaseCli):
         delicious = Site(
             name='Delicious',
             url='https://del.icio.us/%s',
-            category='Social',
             status_code=200,
             test_username_pos='john'
         )
@@ -327,7 +306,6 @@ class DatabaseCli(cli.BaseCli):
         deviant_art = Site(
             name='DeviantArt',
             url='http://%s.deviantart.com/',
-            category='image',
             status_code=200,
             test_username_pos='marydoodles'
         )
@@ -336,7 +314,6 @@ class DatabaseCli(cli.BaseCli):
         diigo = Site(
             name='Diigo',
             url='https://www.diigo.com/profile/%s',
-            category='bookmarking',
             match_type='css',
             match_expr='div#avatarSection',
             test_username_pos='hunter53'
@@ -346,7 +323,6 @@ class DatabaseCli(cli.BaseCli):
         disqus = Site(
             name='Disqus',
             url='https://disqus.com/by/%s/',
-            category='social',
             status_code=200,
             test_username_pos='willwillibe'
         )
@@ -355,7 +331,6 @@ class DatabaseCli(cli.BaseCli):
         diy = Site(
             name='DIY',
             url='https://diy.org/%s',
-            category='home improvement',
             status_code=200,
             test_username_pos='bob'
         )
@@ -364,7 +339,6 @@ class DatabaseCli(cli.BaseCli):
         dribble = Site(
             name='Dribble',
             url='https://www.dribbble.com/%s',
-            category='art and design',
             status_code=200,
             test_username_pos='kirp'
         )
@@ -373,7 +347,6 @@ class DatabaseCli(cli.BaseCli):
         ebay = Site(
             name='Ebay',
             url='http://www.ebay.com/usr/%s',
-            category='shopping',
             match_type='css',
             match_expr='div#user_image',
             test_username_pos='max'
@@ -383,7 +356,6 @@ class DatabaseCli(cli.BaseCli):
         etsy = Site(
             name='Etsy',
             url='https://www.etsy.com/people/%s',
-            category='shopping',
             status_code=200,
             test_username_pos='betsy'
         )
@@ -392,7 +364,6 @@ class DatabaseCli(cli.BaseCli):
         families = Site(
             name='Families',
             url='http://www.families.com/author/%s',
-            category='lifestyle',
             match_type='css',
             match_expr='div#author-description',
             test_username_pos='JenThorpe'
@@ -402,7 +373,6 @@ class DatabaseCli(cli.BaseCli):
         fanpop = Site(
             name='Fanpop',
             url='http://www.fanpop.com/fans/%s',
-            category='entertainment',
             match_type='css',
             match_expr='div.user-header',
             test_username_pos='dan'
@@ -412,7 +382,6 @@ class DatabaseCli(cli.BaseCli):
         ffffound = Site(
             name='FFFFound',
             url='http://ffffound.com/home/%s/found/',
-            category='image',
             status_code=200,
             test_username_pos='tobbz'
         )
@@ -421,7 +390,6 @@ class DatabaseCli(cli.BaseCli):
         flavours = Site(
             name='Flavours',
             url='http://%s.flavors.me',
-            category='social',
             status_code=200,
             test_username_pos='john'
         )
@@ -430,7 +398,6 @@ class DatabaseCli(cli.BaseCli):
         flickr = Site(
             name='Flickr',
             url='https://www.flickr.com/photos/%s/',
-            category='image',
             status_code=200,
             test_username_pos='adam'
         )
@@ -439,7 +406,6 @@ class DatabaseCli(cli.BaseCli):
         foodspotting = Site(
             name='Foodspotting',
             url='http://www.foodspotting.com/%s',
-            category='lifestyle',
             status_code=200,
             test_username_pos='dylan',
             # This site handles names with leading numerics strangely, so we
@@ -451,7 +417,6 @@ class DatabaseCli(cli.BaseCli):
         fotolog = Site(
             name='Fotolog',
             url='http://www.fotolog.com/%s/',
-            category='image',
             status_code=200,
             test_username_pos='anna'
         )
@@ -460,7 +425,6 @@ class DatabaseCli(cli.BaseCli):
         foursquare = Site(
             name='Foursquare',
             url='https://foursquare.com/%s',
-            category='social',
             status_code=200,
             test_username_pos='john'
         )
@@ -469,7 +433,6 @@ class DatabaseCli(cli.BaseCli):
         freesound = Site(
             name='Freesound',
             url='http://www.freesound.org/people/%s/',
-            category='music',
             status_code=200,
             test_username_pos='john'
         )
@@ -478,7 +441,6 @@ class DatabaseCli(cli.BaseCli):
         friend_finder_x = Site(
             name='FriendFinder-X',
             url='http://www.friendfinder-x.com/profile/%s',
-            category='dating',
             match_type='css',
             match_expr='div#tmpl_member_profile_header',
             test_username_pos='daniel'
@@ -488,7 +450,6 @@ class DatabaseCli(cli.BaseCli):
         funny_or_die = Site(
             name='Funny or Die',
             url='http://www.funnyordie.com/%s',
-            category='video',
             status_code=200,
             test_username_pos='bob'
         )
@@ -497,7 +458,6 @@ class DatabaseCli(cli.BaseCli):
         get_it_on = Site(
             name='GETitOn',
             url='http://getiton.com/profile/%s',
-            category='dating',
             match_type='css',
             match_expr='div#profile_page_wrapper',
             test_username_pos='chris'
@@ -507,7 +467,6 @@ class DatabaseCli(cli.BaseCli):
         github = Site(
             name='Github',
             url='https://github.com/%s',
-            category='coding',
             status_code=200,
             test_username_pos='google'
         )
@@ -516,7 +475,6 @@ class DatabaseCli(cli.BaseCli):
         godtube = Site(
             name='GodTube',
             url='http://www.godtube.com/%s/',
-            category='video',
             status_code=200,
             test_username_pos='bball1989'
         )
@@ -525,7 +483,6 @@ class DatabaseCli(cli.BaseCli):
         gogobot = Site(
             name='Gogobot',
             url='http://www.gogobot.com/user/%s',
-            category='travel',
             status_code=200,
             test_username_pos='dan'
         )
@@ -534,7 +491,6 @@ class DatabaseCli(cli.BaseCli):
         goodreads = Site(
             name='Goodreads',
             url='http://www.goodreads.com/%s',
-            category='entertainment',
             status_code=200,
             test_username_pos='seal'
         )
@@ -543,7 +499,6 @@ class DatabaseCli(cli.BaseCli):
         gravatar = Site(
             name='Gravatar',
             url='http://en.gravatar.com/profiles/%s',
-            category='social',
             status_code=200,
             test_username_pos='simon'
         )
@@ -552,7 +507,6 @@ class DatabaseCli(cli.BaseCli):
         hubpages = Site(
             name='Hubpages',
             url='http://%s.hubpages.com/',
-            category='blog',
             status_code=200,
             test_username_pos='bob'
         )
@@ -561,7 +515,6 @@ class DatabaseCli(cli.BaseCli):
         i_am_pregnant = Site(
             name='i-am-pregnant',
             url='http://www.i-am-pregnant.com/members/%s/',
-            category='health',
             status_code=200,
             test_username_pos='shiv77'
         )
@@ -570,7 +523,6 @@ class DatabaseCli(cli.BaseCli):
         if_this_then_that = Site(
             name='IFTTT',
             url='https://ifttt.com/p/%s/shared',
-            category='technology',
             status_code=200,
             test_username_pos='bsaren'
         )
@@ -579,7 +531,6 @@ class DatabaseCli(cli.BaseCli):
         image_shack = Site(
             name='ImageShack',
             url='https://imageshack.com/user/%s',
-            category='image',
             match_type='css',
             match_expr='header.user-profile',
             test_username_pos='Nicholas230'
@@ -587,9 +538,8 @@ class DatabaseCli(cli.BaseCli):
         session.add(image_shack)
 
         imgur = Site(
-            name='imgur',
+            name='Imgur',
             url='http://imgur.com/user/%s',
-            category='image',
             status_code=200,
             test_username_pos='ThatPervert'
         )
@@ -598,16 +548,14 @@ class DatabaseCli(cli.BaseCli):
         instagram = Site(
             name='Instagram',
             url='https://www.instagram.com/%s/',
-            category='social',
             status_code=200,
             test_username_pos='kensingtonroyal'
         )
         session.add(instagram)
 
         instructables = Site(
-            name='instructables',
+            name='Instructables',
             url='http://www.instructables.com/member/%s/',
-            category='learning',
             status_code=200,
             test_username_pos='shags_j'
         )
@@ -616,7 +564,6 @@ class DatabaseCli(cli.BaseCli):
         interpals = Site(
             name='InterPals',
             url='https://www.interpals.net/%s',
-            category='social',
             match_type='css',
             match_expr='div.profile',
             test_username_pos='Seven89'
@@ -626,16 +573,14 @@ class DatabaseCli(cli.BaseCli):
         keybase = Site(
             name='Keybase',
             url='https://keybase.io/%s',
-            category='crypto',
             status_code=200,
             test_username_pos='mehaase'
         )
         session.add(keybase)
 
         kongregate = Site(
-            name='Kongregrate',
+            name='Kongregate',
             url='http://www.kongregate.com/accounts/%s',
-            category='gaming',
             status_code=200,
             test_username_pos='Truestrike'
         )
@@ -644,7 +589,6 @@ class DatabaseCli(cli.BaseCli):
         lanyrd = Site(
             name='Lanyrd',
             url='http://lanyrd.com/profile/%s/',
-            category='social',
             status_code=200,
             test_username_pos='shanselman'
         )
@@ -653,7 +597,6 @@ class DatabaseCli(cli.BaseCli):
         last_fm = Site(
             name='Last.fm',
             url='http://www.last.fm/user/%s',
-            category='music',
             status_code=200,
             test_username_pos='FrancaesG'
         )
@@ -662,7 +605,6 @@ class DatabaseCli(cli.BaseCli):
         law_of_attraction = Site(
             name='Law of Attraction',
             url='http://www.lawofattractionsingles.com/%s',
-            category='dating',
             match_type='css',
             match_expr='div.prof_top_block',
             test_username_pos='Jenniferlynnmaui'
@@ -672,7 +614,6 @@ class DatabaseCli(cli.BaseCli):
         library_thing = Site(
             name='LibraryThing',
             url='https://www.librarything.com/profile/%s',
-            category='learning',
             match_type='css',
             match_expr='div.profile',
             test_username_pos='Medievalgirl'
@@ -680,9 +621,8 @@ class DatabaseCli(cli.BaseCli):
         session.add(library_thing)
 
         lifeboat = Site(
-            name='lifeboat',
+            name='Lifeboat',
             url='https://oc.tc/%s',
-            category='gaming',
             status_code=200,
             test_username_pos='Matilaina'
         )
@@ -691,7 +631,6 @@ class DatabaseCli(cli.BaseCli):
         linked_in = Site(
             name='LinkedIn',
             url='https://www.linkedin.com/in/%s',
-            category='social',
             status_code=200,
             test_username_pos='markhaase'
         )
@@ -700,7 +639,6 @@ class DatabaseCli(cli.BaseCli):
         marketing_land = Site(
             name='Marketing Land',
             url='http://marketingland.com/author/%s',
-            category='business',
             status_code=200,
             test_username_pos='barb-palser'
         )
@@ -709,7 +647,6 @@ class DatabaseCli(cli.BaseCli):
         mate1 = Site(
             name='Mate1.com',
             url='http://www.mate1.com/profiles/%s',
-            category='dating',
             status_code=200,
             test_username_pos='janedoe'
         )
@@ -718,7 +655,6 @@ class DatabaseCli(cli.BaseCli):
         medium = Site(
             name='Medium',
             url='https://medium.com/@%s',
-            category='social',
             status_code=200,
             test_username_pos='erinshawstreet'
         )
@@ -727,7 +663,6 @@ class DatabaseCli(cli.BaseCli):
         meetzur = Site(
             name='Meetzur',
             url='http://www.meetzur.com/%s',
-            category='social',
             match_type='css',
             match_expr='div.profile-left',
             test_username_pos='sachin99'
@@ -737,7 +672,6 @@ class DatabaseCli(cli.BaseCli):
         mixcloud = Site(
             name='Mixcloud',
             url='https://www.mixcloud.com/%s/',
-            category='music',
             status_code=200,
             test_username_pos='dublab'
         )
@@ -746,9 +680,8 @@ class DatabaseCli(cli.BaseCli):
         # This site was out of service at the time I tried testing it, so I
         # could not test this criteria.
         mixcrate = Site(
-            name='mixcrate',
+            name='Mixcrate',
             url='http://www.mixcrate.com/%s',
-            category='music',
             status_code=200,
             test_username_pos='kennyrock'
         )
@@ -757,7 +690,6 @@ class DatabaseCli(cli.BaseCli):
         mixlr = Site(
             name='Mixlr',
             url='http://mixlr.com/%s/',
-            category='music',
             status_code=200,
             test_username_pos='therwandan'
         )
@@ -766,7 +698,6 @@ class DatabaseCli(cli.BaseCli):
         mod_db = Site(
             name='Mod DB',
             url='http://www.moddb.com/members/%s',
-            category='gaming',
             status_code=200,
             test_username_pos='hugebot'
         )
@@ -775,7 +706,6 @@ class DatabaseCli(cli.BaseCli):
         muck_rack = Site(
             name='Muck Rack',
             url='https://muckrack.com/%s',
-            category='gaming',
             status_code=200,
             test_username_pos='scottkleinberg'
         )
@@ -784,7 +714,6 @@ class DatabaseCli(cli.BaseCli):
         mybuilder_com = Site(
             name='MyBuilder.com',
             url='https://www.mybuilder.com/profile/view/%s',
-            category='business',
             status_code=200,
             test_username_pos='kdbuildingservices'
         )
@@ -793,7 +722,6 @@ class DatabaseCli(cli.BaseCli):
         mylot = Site(
             name='myLot',
             url='http://www.mylot.com/%s',
-            category='social',
             status_code=200,
             test_username_pos='LovingMyBabies'
         )
@@ -802,7 +730,6 @@ class DatabaseCli(cli.BaseCli):
         myspace = Site(
             name='Myspace',
             url='https://myspace.com/%s',
-            category='social',
             status_code=200,
             test_username_pos='kesha'
         )
@@ -811,7 +738,6 @@ class DatabaseCli(cli.BaseCli):
         netvibes = Site(
             name='Netvibes',
             url='http://www.netvibes.com/%s',
-            category='business',
             status_code=200,
             test_username_pos='grade3kis'
         )
@@ -821,7 +747,6 @@ class DatabaseCli(cli.BaseCli):
         okcupid = Site(
             name='OkCupid',
             url='https://www.okcupid.com/profile/%s',
-            category='dating',
             status_code=200,
             match_type='xpath',
             match_expr="//div[contains(@class, 'info-username')]",
@@ -832,7 +757,6 @@ class DatabaseCli(cli.BaseCli):
         pandora = Site(
             name='Pandora',
             url='https://www.pandora.com/profile/%s',
-            category='music',
             match_type='css',
             match_expr='div#user_info_container',
             test_username_pos='mehaase'
@@ -842,7 +766,6 @@ class DatabaseCli(cli.BaseCli):
         photoblog = Site(
             name='PhotoBlog',
             url='https://www.photoblog.com/%s',
-            category='social',
             status_code=200,
             test_username_pos='canon6d'
         )
@@ -851,7 +774,6 @@ class DatabaseCli(cli.BaseCli):
         photobucket = Site(
             name='Photobucker',
             url='http://photobucket.com/user/%s/library/',
-            category='image',
             status_code=200,
             test_username_pos='darkgladir'
         )
@@ -860,7 +782,6 @@ class DatabaseCli(cli.BaseCli):
         picture_trail = Site(
             name='PictureTrail',
             url='http://www.picturetrail.com/%s',
-            category='image',
             match_type='css',
             match_expr='td.IntroTitle-text-wt',
             test_username_pos='victoria15'
@@ -870,7 +791,6 @@ class DatabaseCli(cli.BaseCli):
         pink_bike = Site(
             name='Pinkbike',
             url='http://www.pinkbike.com/u/%s/',
-            category='entertainment',
             status_code=200,
             test_username_pos='mattwragg'
         )
@@ -879,7 +799,6 @@ class DatabaseCli(cli.BaseCli):
         pinterest = Site(
             name='Pinterest',
             url='https://www.pinterest.com/%s/',
-            category='social',
             status_code=200,
             test_username_pos='mehaase'
         )
@@ -888,7 +807,6 @@ class DatabaseCli(cli.BaseCli):
         playlists_net = Site(
             name='Playlists.Net',
             url='http://playlists.net/members/%s',
-            category='music',
             status_code=200,
             test_username_pos='WhatisSoul'
         )
@@ -897,7 +815,6 @@ class DatabaseCli(cli.BaseCli):
         plurk = Site(
             name='Plurk',
             url='http://www.plurk.com/%s',
-            category='social',
             match_type='css',
             match_expr='span.nick_name',
             test_username_pos='xxSaltandPepperxx'
@@ -907,7 +824,6 @@ class DatabaseCli(cli.BaseCli):
         rapid7_community = Site(
             name='Rapid7 Community',
             url='https://community.rapid7.com/people/%s',
-            category='technology',
             status_code=200,
             test_username_pos='dabdine'
         )
@@ -917,7 +833,6 @@ class DatabaseCli(cli.BaseCli):
         rate_your_music = Site(
             name='Rate Your Music',
             url='http://rateyourmusic.com/~%s',
-            category='music',
             status_code=200,
             test_username_pos='silvioporto'
         )
@@ -926,7 +841,6 @@ class DatabaseCli(cli.BaseCli):
         readability = Site(
             name='Readability',
             url='https://readability.com/%s/',
-            category='entertainment',
             status_code=200,
             test_username_pos='adam'
         )
@@ -935,7 +849,6 @@ class DatabaseCli(cli.BaseCli):
         reddit = Site(
             name='Reddit',
             url='https://www.reddit.com/user/%s',
-            category='social',
             status_code=200,
             test_username_pos='mehaase'
         )
@@ -944,16 +857,14 @@ class DatabaseCli(cli.BaseCli):
         scratch = Site(
             name='Scratch',
             url='https://scratch.mit.edu/users/%s/',
-            category='social',
             status_code=200,
             test_username_pos='MeTwo'
         )
         session.add(scratch)
 
         setlist_fm = Site(
-            name='setlist.fm',
+            name='Setlist.fm',
             url='http://www.setlist.fm/user/%s',
-            category='music',
             status_code=200,
             test_username_pos='tw21'
         )
@@ -962,7 +873,6 @@ class DatabaseCli(cli.BaseCli):
         shopcade = Site(
             name='Shopcade',
             url='https://www.shopcade.com/%s',
-            category='social',
             status_code=200,
             test_username_pos='salonidahake'
         )
@@ -973,7 +883,6 @@ class DatabaseCli(cli.BaseCli):
         single_muslim = Site(
             name='SingleMuslim',
             url='https://www.singlemuslim.com/searchuser/%s/abc',
-            category='dating',
             match_type='css',
             match_expr='div.userProfileView',
             test_username_pos='YoghurtTub'
@@ -983,7 +892,6 @@ class DatabaseCli(cli.BaseCli):
         slashdot = Site(
             name='Slashdot',
             url='https://slashdot.org/~%s',
-            category='technology',
             match_type='css',
             match_expr='article#user_bio',
             test_username_pos='Locke2005'
@@ -993,7 +901,6 @@ class DatabaseCli(cli.BaseCli):
         slideshare = Site(
             name='SlideShare',
             url='http://www.slideshare.net/%s',
-            category='technology',
             status_code=200,
             test_username_pos='dmc500hats'
         )
@@ -1002,7 +909,6 @@ class DatabaseCli(cli.BaseCli):
         smite_guru = Site(
             name='SmiteGuru',
             url='http://smite.guru/stats/xb/%s/summary',
-            category='gaming',
             match_type='css',
             match_expr='div.header.panel',
             test_username_pos='WatsonV3'
@@ -1012,7 +918,6 @@ class DatabaseCli(cli.BaseCli):
         smug_mug = Site(
             name='SmugMug',
             url='https://%s.smugmug.com/',
-            category='image',
             status_code=200,
             test_username_pos='therescueddog'
         )
@@ -1021,7 +926,6 @@ class DatabaseCli(cli.BaseCli):
         smule = Site(
             name='Smule',
             url='http://www.smule.com/%s',
-            category='music',
             status_code=200,
             test_username_pos='AbsurdJoker'
         )
@@ -1030,7 +934,6 @@ class DatabaseCli(cli.BaseCli):
         snooth = Site(
             name='Snooth',
             url='http://www.snooth.com/profiles/%s/',
-            category='music',
             match_type='css',
             match_expr='div.profile-header',
             test_username_pos='dvogler'
@@ -1040,7 +943,6 @@ class DatabaseCli(cli.BaseCli):
         soldier_x = Site(
             name='SoldierX',
             url='https://www.soldierx.com/hdb/%s',
-            category='technology',
             match_type='css',
             match_expr='div.field-field-hdb-photo',
             test_username_pos='achillean'
@@ -1050,7 +952,6 @@ class DatabaseCli(cli.BaseCli):
         sound_cloud = Site(
             name='SoundCloud',
             url='https://soundcloud.com/%s',
-            category='music',
             status_code=200,
             test_username_pos='youngma'
         )
@@ -1059,7 +960,6 @@ class DatabaseCli(cli.BaseCli):
         soup = Site(
             name='Soup',
             url='http://%s.soup.io/',
-            category='social',
             match_type='css',
             match_expr='div#userinfo',
             test_username_pos='nattaly'
@@ -1069,7 +969,6 @@ class DatabaseCli(cli.BaseCli):
         source_forge = Site(
             name='SourceForge',
             url='https://sourceforge.net/u/%s/profile/',
-            category='technology',
             status_code=200,
             test_username_pos='ronys'
         )
@@ -1078,7 +977,6 @@ class DatabaseCli(cli.BaseCli):
         speaker_deck = Site(
             name='Speaker Deck',
             url='https://speakerdeck.com/%s',
-            category='technology',
             status_code=200,
             test_username_pos='rocio'
         )
@@ -1087,7 +985,6 @@ class DatabaseCli(cli.BaseCli):
         sporcle = Site(
             name='Sporcle',
             url='http://www.sporcle.com/user/%s',
-            category='entertainment',
             match_type='css',
             match_expr='div#UserBox',
             test_username_pos='lolshortee'
@@ -1097,7 +994,6 @@ class DatabaseCli(cli.BaseCli):
         steam = Site(
             name='Steam',
             url='http://steamcommunity.com/id/%s',
-            category='gaming',
             match_type='css',
             match_expr='div.profile_page',
             test_username_pos='tryh4rdz'
@@ -1107,7 +1003,6 @@ class DatabaseCli(cli.BaseCli):
         stupid_cancer = Site(
             name='Stupidcancer',
             url='http://stupidcancer.org/community/profile/%s',
-            category='social',
             status_code=200,
             test_username_pos='CatchMeYes'
         )
@@ -1118,7 +1013,6 @@ class DatabaseCli(cli.BaseCli):
         tribe = Site(
             name='Tribe',
             url='http://people.tribe.net/%s',
-            category='social',
             status_code=200,
             test_username_pos='violetta'
         )
@@ -1127,7 +1021,6 @@ class DatabaseCli(cli.BaseCli):
         trip_advisor = Site(
             name='TripAdvisor',
             url='https://www.tripadvisor.com/members/%s',
-            category='social',
             status_code=200,
             test_username_pos='scrltd16'
         )
@@ -1136,7 +1029,6 @@ class DatabaseCli(cli.BaseCli):
         tumblr = Site(
             name='Tumblr',
             url='http://%s.tumblr.com/',
-            category='social',
             status_code=200,
             test_username_pos='seanjacobcullen'
         )
@@ -1145,7 +1037,6 @@ class DatabaseCli(cli.BaseCli):
         twitter = Site(
             name='Twitter',
             url='https://twitter.com/%s',
-            category='social',
             status_code=200,
             test_username_pos='mehaase'
         )
@@ -1154,7 +1045,6 @@ class DatabaseCli(cli.BaseCli):
         untappd = Site(
             name='Untappd',
             url='https://untappd.com/user/%s',
-            category='entertainment',
             status_code=200,
             test_username_pos='samelawrence'
         )
@@ -1163,7 +1053,6 @@ class DatabaseCli(cli.BaseCli):
         vimeo = Site(
             name='Vimeo',
             url='https://vimeo.com/%s',
-            category='image',
             status_code=200,
             test_username_pos='mikeolbinski'
         )
@@ -1172,7 +1061,6 @@ class DatabaseCli(cli.BaseCli):
         visualize_us = Site(
             name='VisualizeUs',
             url='http://vi.sualize.us/%s/',
-            category='social',
             status_code=200,
             test_username_pos='emilybusiness'
         )
@@ -1181,7 +1069,6 @@ class DatabaseCli(cli.BaseCli):
         voices_com = Site(
             name='Voices.com',
             url='https://www.voices.com/people/%s',
-            category='business',
             match_type='css',
             match_expr='div.voices-profile-title',
             test_username_pos='johncavanagh'
@@ -1191,7 +1078,6 @@ class DatabaseCli(cli.BaseCli):
         wanelo = Site(
             name='Wanelo',
             url='https://wanelo.com/%s',
-            category='social',
             status_code=200,
             test_username_pos='tsingeli'
         )
@@ -1200,7 +1086,6 @@ class DatabaseCli(cli.BaseCli):
         wattpad = Site(
             name='Wattpad',
             url='https://www.wattpad.com/user/%s',
-            category='social',
             status_code=200,
             test_username_pos='Weirdly_Sarcastic'
         )
@@ -1209,7 +1094,6 @@ class DatabaseCli(cli.BaseCli):
         wishlistr = Site(
             name='Wishlistr',
             url='http://www.wishlistr.com/profile/%s/',
-            category='social',
             match_type='css',
             match_expr='div#people',
             test_username_pos='seventy7'
@@ -1219,7 +1103,6 @@ class DatabaseCli(cli.BaseCli):
         wordpress = Site(
             name='WordPress',
             url='https://profiles.wordpress.org/%s/',
-            category='business',
             match_type='css',
             match_expr='ul#user-meta',
             test_username_pos='sivel'
@@ -1229,7 +1112,6 @@ class DatabaseCli(cli.BaseCli):
         xbox_gamertag = Site(
             name='Xbox Gamertag',
             url='https://www.xboxgamertag.com/search/%s/',
-            category='gaming',
             status_code=200,
             test_username_pos='masterrshake'
         )
@@ -1238,11 +1120,322 @@ class DatabaseCli(cli.BaseCli):
         youtube = Site(
             name='YouTube',
             url='https://www.youtube.com/user/%s',
-            category='image',
             status_code=200,
             test_username_pos='vlogdozack'
         )
         session.add(youtube)
+
+        session.commit()
+
+    def _create_fixture_categories(self, config):
+        """
+        Create default categories.
+        """
+        bookmarking_sites = [
+            'Delicious',
+            'Diigo',
+            'Blogmarks'
+        ]
+        business_sites = [
+            'Conferize',
+            'Dribble',
+            'Marketing Land',
+            'MyBuilder.com',
+            'Netvibes',
+            'Voices.com',
+            'WordPress',
+        ]
+        coding_sites = [
+            'Bitbucket',
+            'Codeplex',
+            'Github',
+            'SourceForge',
+        ]
+        crypto_sites = [
+            'Keybase',
+        ]
+        dating_sites = [
+            'Badoo',
+            'FriendFinder-X',
+            'GETitOn',
+            'Law of Attraction',
+            'Mate1.com',
+            'OkCupid',
+            'SingleMuslim',
+        ]
+        hobby_and_interest_sites = [
+            'Anobii',
+            'Authorstream',
+            'Car Domain',
+            'Colour Lovers',
+            'DIY',
+            'Goodreads',
+            'Fanpop',
+            'Foodspotting',
+            'Kongregate',
+            'Lifeboat',
+            'Mod DB',
+            'Muck Rack',
+            'Pinkbike',
+            'Readability',
+            'SmiteGuru',
+            'Sporcle',
+            'Steam',
+            'Untappd',
+            'Xbox Gamertag',
+        ]
+        health_and_lifestyle_sites = [
+            'Bodybuilding',
+            'Families',
+            'i-am-pregnant',
+            'Stupidcancer',
+        ]
+        image_sites = [
+            'DeviantArt',
+            'FFFFound',
+            'Flickr',
+            'Fotolog',
+            'ImageShack',
+            'Imgur',
+            'Photobucket',
+            'Photobucker',
+            'PictureTrail',
+            'SmugMug',
+        ]
+        learning_sites = [
+            'Instructables',
+            'LibraryThing',
+            'Speaker Deck',
+            'SlideShare',
+        ]
+        music_sites = [
+            'Audioboom',
+            'Blip FM',
+            'Freesound',
+            'Last.fm',
+            'Mixcloud',
+            'Mixcrate',
+            'Mixlr',
+            'Mixcrate',
+            'Pandora',
+            'Playlists.Net',
+            'Rate Your Music',
+            'Setlist.fm',
+            'Smule',
+            'Snooth',
+            'SoundCloud',
+
+        ]
+        shopping_sites = [
+            'Ebay',
+            'Etsy',
+            'Shopcade',
+        ]
+        social_sites = [
+            'About.me',
+            'Ask FM',
+            'Behance',
+            'Blogspot',
+            'Cafemom',
+            'Copytaste',
+            'Disqus',
+            'Flavours',
+            'Foursquare',
+            'Gravatar',
+            'Hubpages',
+            'Instagram',
+            'InterPals',
+            'Lanyrd',
+            'LinkedIn',
+            'Medium',
+            'Meetzur',
+            'myLot',
+            'Myspace',
+            'PhotoBlog',
+            'Pinterest',
+            'Plurk',
+            'Reddit',
+            'Scratch',
+            'Soup',
+            'Tribe',
+            'Tumblr',
+            'Twitter',
+            'VisualizeUs',
+            'Wanelo',
+            'Wattpad',
+            'Wishlistr'
+        ]
+        technology_sites = [
+            'IFTTT',
+            'Rapid7 Community',
+            'Slashdot',
+            'SoldierX',
+        ]
+        travel_sites = [
+            'TripAdvisor',
+            'Cruisemates',
+            'Gogobot',
+        ]
+        video_sites = [
+            'Break',
+            'Dailymotion',
+            'Funny or Die',
+            'GodTube',
+            'Vimeo',
+            'YouTube',
+        ]
+
+        session = app.database.get_session(self._db)
+
+        # Bookmarking
+        sites = session.query(Site) \
+                       .filter(Site.name.in_(bookmarking_sites)) \
+                       .all()
+        bookmarking = Category(
+            name='Bookmarking',
+            sites=sites
+        )
+        session.add(bookmarking)
+
+        # Business
+        sites = session.query(Site) \
+                       .filter(Site.name.in_(business_sites)) \
+                       .all()
+        business = Category(
+            name='Business',
+            sites=sites
+        )
+        session.add(business)
+
+        # Coding
+        sites = session.query(Site) \
+                       .filter(Site.name.in_(coding_sites)) \
+                       .all()
+        coding = Category(
+            name='Coding',
+            sites=sites
+        )
+        session.add(coding)
+
+        # Crypto
+        sites = session.query(Site) \
+                       .filter(Site.name.in_(crypto_sites)) \
+                       .all()
+        crypto = Category(
+            name='Crypto',
+            sites=sites
+        )
+        session.add(crypto)
+
+        # Dating
+        sites = session.query(Site) \
+                       .filter(Site.name.in_(dating_sites)) \
+                       .all()
+        dating = Category(
+            name='Dating',
+            sites=sites
+        )
+        session.add(dating)
+
+        # Health and Lifestyle
+        sites = session.query(Site) \
+                       .filter(Site.name.in_(health_and_lifestyle_sites)) \
+                       .all()
+        health_and_lifestyle = Category(
+            name='Health and Lifestyle',
+            sites=sites
+        )
+        session.add(health_and_lifestyle)
+
+        # Hobby and Interest
+        sites = session.query(Site) \
+                       .filter(Site.name.in_(hobby_and_interest_sites)) \
+                       .all()
+        hobby_and_interest = Category(
+            name='Hobby and Interest',
+            sites=sites
+        )
+        session.add(hobby_and_interest)
+
+        # Image
+        sites = session.query(Site) \
+                       .filter(Site.name.in_(image_sites)) \
+                       .all()
+        image = Category(
+            name='Image',
+            sites=sites
+        )
+        session.add(image)
+
+        # Learning
+        sites = session.query(Site) \
+                       .filter(Site.name.in_(learning_sites)) \
+                       .all()
+        learning = Category(
+            name='Learning',
+            sites=sites
+        )
+        session.add(learning)
+
+        # Music
+        sites = session.query(Site) \
+                       .filter(Site.name.in_(music_sites)) \
+                       .all()
+        music = Category(
+            name='Music',
+            sites=sites
+        )
+        session.add(music)
+
+        # Shopping
+        sites = session.query(Site) \
+                       .filter(Site.name.in_(shopping_sites)) \
+                       .all()
+        shopping = Category(
+            name='Shopping',
+            sites=sites
+        )
+        session.add(shopping)
+
+        # Social
+        sites = session.query(Site) \
+                       .filter(Site.name.in_(social_sites)) \
+                       .all()
+        social = Category(
+            name='Social',
+            sites=sites
+        )
+        session.add(social)
+
+        # Technology
+        sites = session.query(Site) \
+                       .filter(Site.name.in_(technology_sites)) \
+                       .all()
+        technology = Category(
+            name='Technology',
+            sites=sites
+        )
+        session.add(technology)
+
+        # Travel
+        sites = session.query(Site) \
+                       .filter(Site.name.in_(travel_sites)) \
+                       .all()
+        travel = Category(
+            name='Travel',
+            sites=sites
+        )
+        session.add(travel)
+
+        # Video
+        sites = session.query(Site) \
+                       .filter(Site.name.in_(video_sites)) \
+                       .all()
+        video = Category(
+            name='Video',
+            sites=sites
+        )
+        session.add(video)
 
         session.commit()
 

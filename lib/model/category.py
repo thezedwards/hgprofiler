@@ -8,29 +8,35 @@ from sqlalchemy.orm import relationship
 from model import Base
 
 
-group_join_site = Table(
-    'group_join_site',
+category_join_site = Table(
+    'category_join_site',
     Base.metadata,
-    Column('group_id', Integer, ForeignKey('group.id'), primary_key=True),
-    Column('site_id', Integer, ForeignKey('site.id'), primary_key=True),
+    Column('category_id',
+           Integer,
+           ForeignKey('category.id'),
+           primary_key=True),
+    Column('site_id',
+           Integer,
+           ForeignKey('site.id'),
+           primary_key=True),
 )
 
 
-class Group(Base):
+class Category(Base):
     ''' Data model for a profile. '''
 
-    __tablename__ = 'group'
+    __tablename__ = 'category'
     __table_args__ = (
-        UniqueConstraint('name', name='group_name'),
+        UniqueConstraint('name', name='category_name'),
     )
 
     id = Column(Integer, primary_key=True)
     name = Column(String(255), nullable=False)
 
-    # One group has 0-n sites.
+    # One category has 0-n sites.
     sites = relationship(
         'Site',
-        secondary=group_join_site
+        secondary=category_join_site
     )
 
     def __init__(self, name, sites):

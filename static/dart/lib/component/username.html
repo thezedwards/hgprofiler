@@ -33,20 +33,20 @@
                         class='btn btn-primary dropdown-toggle'
                         data-toggle='dropdown'
                         aria-expanded='false'>
-                      {{groupDescription}} <span class='caret'></span>
+                      {{categoryDescription}} <span class='caret'></span>
                 </button>
                 <ul class='dropdown-menu sort-by' role='menu'>
                   <li>
-                    <a ng-click='setGroup(null)'>
-                      <i class='fa fa-check' ng-show='selectedGroup == null'></i>
+                    <a ng-click='setCategory(null)'>
+                      <i class='fa fa-check' ng-show='selectedCategory == null'></i>
                       All Sites
                     </a>
                   </li>
                   <li class='divider'></li>
-                  <li ng-repeat='group in groups'>
-                    <a ng-click='setGroup(group)'>
-                      <i class='fa fa-check' ng-show='group == selectedGroup'></i>
-                      {{group.name}}
+                  <li ng-repeat='category in categories'>
+                    <a ng-click='setCategory(category)'>
+                      <i class='fa fa-check' ng-show='category == selectedCategory'></i>
+                      {{category.name}}
                     </a>
                   </li>
                 </ul>

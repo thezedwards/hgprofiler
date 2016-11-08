@@ -1,6 +1,6 @@
 import 'package:hgprofiler/model/site.dart';
-/// A model site grouping.
-class Group {
+/// A model site category.
+class Category {
 
     int id;
     List<Site> sites;
@@ -9,12 +9,12 @@ class Group {
     // Errors related to creating or loading this profile.
     String error;
 
-    Group(String name, List<Site> sites) {
+    Category(String name, List<Site> sites) {
         this.name = name; 
         this.sites = sites;
     }
 
-    Group.fromJson(Map json) {
+    Category.fromJson(Map json) {
         this.id = json['id'];
         this.name = json['name'];
         this.sites = new List.generate(

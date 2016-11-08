@@ -19,7 +19,7 @@ import 'package:hgprofiler/component/d3/sparkline.dart';
 import 'package:hgprofiler/component/edit_select.dart';
 import 'package:hgprofiler/component/edit_text.dart';
 import 'package:hgprofiler/component/excerpt.dart';
-import 'package:hgprofiler/component/group/list.dart';
+import 'package:hgprofiler/component/category/list.dart';
 import 'package:hgprofiler/component/home.dart';
 import 'package:hgprofiler/component/login.dart';
 import 'package:hgprofiler/component/markdown.dart';
@@ -69,7 +69,7 @@ class HGProfilerApplication extends Module {
         bind(EditTextComponent);
         bind(ExcerptComponent);
         bind(GripComponent);
-        bind(GroupListComponent);
+        bind(CategoryListComponent);
         bind(HeatmapComponent);
         bind(HomeComponent);
         bind(IsoDateFormatter);

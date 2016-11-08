@@ -29,11 +29,11 @@ class MyFlask(Flask):
     jinja_options = Flask.jinja_options.copy()
     jinja_options.update({
         "block_start_string": "[%",
-        "block_end_string":   "%]",
+        "block_end_string": "%]",
         "variable_start_string": "[[",
-        "variable_end_string":   "]]",
+        "variable_end_string": "]]",
         "comment_start_string": "[#",
-        "comment_end_string":   "#]",
+        "comment_end_string": "#]",
     })
 
     __atexit = list()
@@ -204,7 +204,9 @@ def init_logging(flask_app, config):
     log_formatter = logging.Formatter(log_string_format, log_date_format)
 
     try:
-        log_level = getattr(logging, config.get('logging', 'log_level').upper())
+        log_level = getattr(logging,
+                            config.get('logging', 'log_level')
+                            .upper())
     except AttributeError:
         raise ValueError("Invalid log level: %s" % log_level)
 
@@ -258,8 +260,8 @@ def init_views(flask_app, config):
     from app.views.username import UsernameView
     UsernameView.register(flask_app, route_base='/api/username/')
 
-    from app.views.group import GroupView
-    GroupView.register(flask_app, route_base='/api/group/')
+    from app.views.category import CategoryView
+    CategoryView.register(flask_app, route_base='/api/category/')
 
     from app.views.archive import ArchiveView
     ArchiveView.register(flask_app, route_base='/api/archive/')
@@ -280,7 +282,7 @@ def init_webassets(flask_app, config):
 
     dart_root = 'dart/web' if flask_app.debug else 'dart/build/web'
 
-    assets.register("less",  Bundle(
+    assets.register("less", Bundle(
         "less/bootstrap/bootstrap.less",
         "less/font-awesome/font-awesome.less",
         filters="less",

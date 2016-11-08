@@ -3,7 +3,6 @@ import 'package:hgprofiler/model/result.dart';
 
 class Site {
 
-    String category;
     int id;
     int statusCode;
     String matchType;
@@ -21,7 +20,7 @@ class Site {
     // Errors related to creating or loading this site.
     String error;
 
-    Site(String name, String url, String category,
+    Site(String name, String url,
          int statusCode, String matchType, String matchExpr,
          String testUsernamePos, Map headers) {
 
@@ -36,7 +35,6 @@ class Site {
     }
 
     Site.fromJson(Map json) {
-        this.category = json['category'];
         this.statusCode = json['status_code'];
         this.matchType = json['match_type'];
         this.matchExpr = json['match_expr'];

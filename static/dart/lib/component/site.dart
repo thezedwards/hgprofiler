@@ -39,8 +39,6 @@ class SiteComponent extends Object
     int loading = 0;
     List<Map> messages = new List<Map>();
     String newSiteName;
-    String newSiteCategory;
-    String newSiteCategoryDescription = 'Select a category';
     String newSiteUrl;
     String newSiteMatchType;
     String newSiteMatchExpr;
@@ -59,7 +57,6 @@ class SiteComponent extends Object
     String screenshotClass;
     String screenshotUsername;
     Map<String,Site> sites;
-    List<String> siteCategories;
     List<String> siteIds;
     bool showAddEdit = false;
     bool submittingSite = false;
@@ -102,7 +99,6 @@ class SiteComponent extends Object
             this._sse.onResult.listen(this._resultListener),
         ]);
 
-        this._fetchCategories();
         this._fetchMatchTypes();
         this._fetchCurrentPage();
     }
@@ -124,13 +120,11 @@ class SiteComponent extends Object
             this.dialogTitle = 'Add Site';
             this.dialogClass = 'panel-success';
             this.newSiteName = null;
-            this.newSiteCategory = null;
             this.newSiteStatusCode = null;
             this.newSiteMatchType = 'text';
             this.newSiteMatchExpr = '';
             this.newSiteTestUsernamePos = null;
             this.newSiteTestUsernameNeg = this.randAlphaNumeric(16);
-            this.newSiteCategoryDescription = 'Select a category';
             this.newSiteUrl = null;
             this.editSiteId = null;
             this.siteHeaderKeys = new List<String>();
@@ -155,13 +149,6 @@ class SiteComponent extends Object
     /// Hide the add/edit sites dialog.
     void hideAddEditDialog() {
         this.showAddEdit = false;
-    }
-
-    /// Select a category in the "Add Site" form.
-    void setSiteCategory(String category) {
-        this.newSiteCategory = category;
-        String categoryHuman = category.replaceRange(0, 1, category[0].toUpperCase());
-        this.newSiteCategoryDescription = categoryHuman;
     }
 
     /// Select a match type in the "Add Site" form.
@@ -232,7 +219,6 @@ class SiteComponent extends Object
     /// Set site to be edited and show add/edit dialog.
     void editSite(int id_) {
         this.newSiteName = this.sites[id_].name;
-        this.setSiteCategory(this.sites[id_].category);
         this.newSiteMatchType = this.sites[id_].matchType;
         this.newSiteMatchExpr = this.sites[id_].matchExpr;
         this.newSiteStatusCode = this.sites[id_].statusCode?.toString() ?? '';
@@ -309,31 +295,6 @@ class SiteComponent extends Object
             .whenComplete(() {this.loading--;});
     }
 
-    // Fetch list of site categories.
-    void _fetchCategories() {
-        this.loading++;
-        String categoriesUrl = '/api/site/categories';
-        this.siteCategories = new List();
-        Map urlArgs = new Map();
-
-        this.api
-            .get(categoriesUrl, urlArgs: urlArgs, needsAuth: true)
-            .then((response) {
-                response.data['categories'].forEach((category) {
-                    this.siteCategories.add(category);
-
-                });
-                this.siteCategories.sort();
-            })
-            .catchError((response) {
-                String msg = response.data['message'];
-                this._showMessage(msg, 'danger');
-            })
-            .whenComplete(() {
-                this.loading--;
-            });
-    }
-
     // Fetch list of map of match types.
     void _fetchMatchTypes() {
         this.loading++;
@@ -366,11 +327,6 @@ class SiteComponent extends Object
     bool _validateSiteInput() {
         bool result = true;
         this.siteError = null;
-
-        if (this.newSiteCategory == '' || this.newSiteCategory == null) {
-            this.siteError = 'You must select a site category.';
-            result = false;
-        }
 
         if (this.newSiteUrl == '' || this.newSiteUrl == null) {
             this.siteError = 'You must enter a URL for the site.';
@@ -436,7 +392,6 @@ class SiteComponent extends Object
         Map site = {
             'name': this.newSiteName,
             'url': this.newSiteUrl,
-            'category': this.newSiteCategory,
             'status_code': int.parse(this.newSiteStatusCode, onError: (_) => null),
             'match_expr': this._nullString(this.newSiteMatchExpr),
             'match_type': this._nullString(this.newSiteMatchType),
@@ -473,7 +428,6 @@ class SiteComponent extends Object
             addSite();
         }
     }
-
 
     /// Trigger test site when the user presses enter in the test site input.
     void handleTestSiteKeypress(Event e) {
@@ -537,7 +491,6 @@ class SiteComponent extends Object
             'status_code': int.parse(this.newSiteStatusCode, onError: (_) => null),
             'match_expr': this._nullString(this.newSiteMatchExpr),
             'match_type': this._nullString(this.newSiteMatchType),
-            'category': this.newSiteCategory,
             'test_username_pos': this.newSiteTestUsernamePos,
             'test_username_neg': this.newSiteTestUsernameNeg,
             'headers': this.newSiteHeaders,
@@ -585,7 +538,6 @@ class SiteComponent extends Object
             'status_code': int.parse(this.newSiteStatusCode, onError: (_) => null),
             'match_expr': this._nullString(this.newSiteMatchExpr),
             'match_type': this._nullString(this.newSiteMatchType),
-            'category': this.newSiteCategory,
             'test_username_pos': this.newSiteTestUsernamePos,
             'test_username_neg': this.newSiteTestUsernameNeg,
             'headers': this.newSiteHeaders,
@@ -694,18 +646,6 @@ class SiteComponent extends Object
             });
     }
 
-    /// Get the index of a site category element.
-    int siteCategoryIndex(String category) {
-        int index;
-        for (int i = 0; i < this.siteCategories.length; i++) {
-            if(category == this.siteCategories[i]) {
-                index = i;
-                break;
-            }
-        }
-        return index;
-    }
-
     /// Listen for job results.
     void _resultListener(Event e) {
         Map json = JSON.decode(e.data);
@@ -753,10 +693,10 @@ class SiteComponent extends Object
                 if (this.sites.containsKey(site.id)) {
                   this.sites[site.id] = site;
                 }
-                this._showMessage('Site "${json["name"]}" updated.', 'info', 3);
+                this._showMessage('Site "${json["name"]}" updated.', 'success', 3);
             }
             else if (json['status'] == 'deleted') {
-                this._showMessage('Site "${json["name"]}" deleted.', 'danger', 3);
+                this._showMessage('Site "${json["name"]}" deleted.', 'sucess', 3);
                 this._fetchCurrentPage();
             }
         }
