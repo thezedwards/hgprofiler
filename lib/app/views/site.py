@@ -17,7 +17,6 @@ from model import Site
 SITE_ATTRS = {
     'name': {'type': str, 'required': True},
     'url': {'type': str, 'required': True},
-    'category': {'type': str, 'required': True},
     'match_expr': {'type': str, 'required': False, 'allow_null': True},
     'match_type': {'type': str, 'required': False, 'allow_null': True},
     'status_code': {'type': int, 'required': False, 'allow_null': True},
@@ -45,7 +44,6 @@ class SiteView(FlaskView):
             {
                 "sites": [
                     {
-                        "category": "social",
                         "id": 1,
                         "name": "Blinklist",
                         "search_text": "BlinkList Page.</title>",
@@ -72,7 +70,6 @@ class SiteView(FlaskView):
 
         :>header Content-Type: application/json
         :>json list sites: a list of site objects
-        :>json str sites[n].category: the category of this site
         :>json int sites[n].id: the unique id of this site
         :>json str sites[n].name: the name of this site
         :>json str sites[n].search_text: the text pattern should that should
@@ -137,7 +134,6 @@ class SiteView(FlaskView):
                     {
                         "name": "about.me",
                         "url": "http://about.me/%s",
-                        "category": "social",
                         "status_code": 200,
                         "match_type": "text",
                         "match_expr": "Foo Bar Baz",
@@ -162,7 +158,6 @@ class SiteView(FlaskView):
         :<json list sites: a list of sites to create
         :<json string sites[n].name: name of site
         :<json string sites[n].url: username search url for the site
-        :<json string sites[n].category: category of the site
         :<json int sites[n].status_code: the status code to check for
            determining a match (nullable)
         :<json string sites[n].match_type: type of match (see get_match_types()
@@ -198,7 +193,6 @@ class SiteView(FlaskView):
             test_username_pos = site_json['test_username_pos'].lower().strip()
             site = Site(name=site_json['name'].strip(),
                         url=site_json['url'].lower().strip(),
-                        category=site_json['category'].lower().strip(),
                         test_username_pos=test_username_pos)
 
             site.status_code = site_json['status_code']
@@ -255,7 +249,6 @@ class SiteView(FlaskView):
                 {
                     "name": "bebo",
                     "url": "http://bebo.com/usernames/search=%s",
-                    "category": "social",
                     "status_code": 200,
                     "match_type": "text",
                     "match_expr": "Foo Bar Baz",
@@ -270,7 +263,6 @@ class SiteView(FlaskView):
         ..sourcecode:: json
 
             {
-                "category": "social",
                 "id": 2,
                 "name": "bebo",
                 "search_text": "Bebo User Page.</title>",
@@ -289,7 +281,6 @@ class SiteView(FlaskView):
         :<header X-Auth: the client's auth token
         :<json string name: name of site
         :<json string url: username search url for the site
-        :<json string category: category of the site
         :<json string test_username_pos: username that exists on site
             (used for testing)
         :<json string test_username_neg: username that does not
@@ -300,7 +291,6 @@ class SiteView(FlaskView):
         :>json int id: unique identifier for site
         :>json str name: name of site
         :>json str url: username search url for the site
-        :>json str category: category of the site
         :>json int status_code: the status code to check for
             determining a match (nullable)
         :>json string match_type: type of match (see get_match_types()
@@ -338,10 +328,6 @@ class SiteView(FlaskView):
         if 'url' in request_json:
             validate_json_attr('url', SITE_ATTRS, request_json)
             site.url = request_json['url'].lower().strip()
-
-        if 'category' in request_json:
-            validate_json_attr('category', SITE_ATTRS, request_json)
-            site.category = request_json['category'].lower().strip()
 
         if 'match_expr' in request_json:
             validate_json_attr('match_expr', SITE_ATTRS, request_json)
@@ -606,49 +592,6 @@ class SiteView(FlaskView):
 
         response = jsonify(tracker_ids=tracker_ids)
         response.status_code = 202
-
-        return response
-
-    @route('/categories')
-    def get_categories(self):
-        """
-        Return list of site categories.
-
-        For now, we simply return the categories that are already
-        set in the existing/fixture data.
-
-        At some point, perhaps the available categories should
-        be defined/configurable.
-
-        **Example Response**
-
-        ..sourcecode:: json
-
-            {
-                "categories": [
-                    "books",
-                    "images",
-                    "pressies",
-                ]
-            }
-
-        :<header Content-Type: application/json
-        :<header X-Auth: the client's auth token
-
-        :>header Content-Type: application/json
-        :>json list categories: list of site categories
-        :>json str url: URL endpoint for retriving more data about this label
-
-        :status 200: ok
-        :status 400: invalid request body
-        :status 401: authentication required
-        """
-        categories = g.db.query(Site.category).distinct()
-        categories = [c[0] for c in categories]
-        categories.sort()
-
-        response = jsonify(categories=categories)
-        response.status_code = 200
 
         return response
 
