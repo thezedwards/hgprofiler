@@ -1,21 +1,68 @@
 #!/usr/bin/env python
+"""
+Command line client for the Profiler API.
+
+Configuration is via config.ini which is created
+automatically when it cannot be found in default locations:
+
+http://click.pocoo.org/5/utils/#finding-application-folders
+
+For example
+===========
+
+$ cat ~/.config/profilercli/config.ini:
+
+[DEFAULT]
+log_level=warning
+profiler_app_host=None
+profiler_api_token=None
+log_file=None
+
+ToDo
+====
+
+1. There is no handling for when token expires. An error will be thrown
+with no information on how to fix :-(
+
+"""
 import click
-import datetime
+import configparser
 import csv
+import datetime
+import getpass
+import json
 import logging
 import math
 import os
 import requests
+import sys
 import time
 import urllib
+from pygments import highlight, lexers, formatters
 
-from pprint import pprint
+# ToDo - remove and provide proper instructions:
+requests.packages.urllib3.disable_warnings()
+
+APP_NAME = 'profilercli'
 
 
 def download_zip(url, output_dir):
     """
     Download zip file from url.
     """
+    raise NotImplemented
+
+
+def print_json(json_string):
+    """
+    Thanks arnushky:
+    http://stackoverflow.com/questions/25638905/coloring-json-output-in-python
+    """
+    formatted_json = json.dumps(json.loads(json_string), indent=4)
+    colourful_json = highlight(formatted_json,
+                               lexers.JsonLexer(),
+                               formatters.TerminalFormatter())
+    print(colourful_json)
 
 
 class ProfilerError(Exception):
@@ -31,8 +78,8 @@ class Config(object):
     Base configuration class.
     """
     def __init__(self):
-        self.verbose = False
-        self.log_file = ''
+        self.config_dir = click.get_app_dir(APP_NAME)
+        self.config_path = os.path.join(self.config_dir, 'config.ini')
         self.log_levels = {
             'debug': logging.DEBUG,
             'info': logging.INFO,
@@ -40,10 +87,59 @@ class Config(object):
             'error': logging.ERROR,
             'critical': logging.CRITICAL
         }
-        self.log_level = self.log_levels['warning']
-        self.app_host = None
-        self.token = None
+        self._load_settings()
+        self.log_level = self.log_levels[self.settings.get('log_level',
+                                                           'warning').lower()]
         self.headers = {}
+
+    def _load_settings(self):
+        """
+        Load settings from config.ini.
+        The file will be created if it does not exist.
+        """
+        if os.path.exists(self.config_path):
+            self.settings = self._read_config()
+        else:
+            click.secho('You are not authenticated.', fg='red')
+            self.settings = {
+                'log_level': 'warning',
+                'profiler_app_host': None,
+                'profiler_api_token': None,
+                'log_file': None,
+            }
+            os.makedirs(self.config_dir, exist_ok=True)
+            self.settings['profiler_app_host'] = input('App host:')
+            username = input('Username:')
+            password = getpass.getpass('Password:')
+            auth_url = os.path.join(self.settings['profiler_app_host'],
+                                    '/api/authentication/')
+            payload = {'email': username, 'password': password}
+            response = requests.post(auth_url, json=payload, verify=False)
+            response.raise_for_status()
+
+            try:
+                self.settings['profiler_api_token'] = response.json()['token']
+            except KeyError:
+                raise ProfilerError('Authentication failed.')
+
+            with open(self.config_path, 'w+') as f:
+                f.write('[DEFAULT]\n')
+                for setting, value in self.settings.items():
+                    f.write('{}n'.format(setting, value))
+
+                click.echo('Created configuration file: {}'
+                           .format(self.config_path))
+
+    def _read_config(self):
+        cfg = os.path.join(click.get_app_dir(APP_NAME), 'config.ini')
+        parser = configparser.ConfigParser()
+        parser.read([cfg])
+        rv = {}
+
+        for k, v in parser['DEFAULT'].items():
+            rv[k] = v
+
+        return rv
 
 
 # Create decorator allowing configuration to be passed between commands.
@@ -51,14 +147,12 @@ pass_config = click.make_pass_decorator(Config, ensure=True)
 
 
 @click.group()
-@click.option('--verbose', is_flag=True, help='Show debug.')
 @click.option('--app-host',
-              prompt=True,
+              prompt=False,
               envvar='PROFILER_APP_HOST',
               type=click.STRING,
               help="App host: 'protocol://address:port'")
 @click.option('--token',
-              default="",
               envvar='PROFILER_API_TOKEN',
               type=click.STRING,
               help="App access token.")
@@ -75,9 +169,8 @@ pass_config = click.make_pass_decorator(Config, ensure=True)
               default='warning',
               help='Log level.')
 @pass_config
-def cli(config, verbose, app_host, token, log_file, log_level):
-    """
-    \b
+def cli(config, app_host, token, log_file, log_level):
+    """ \b
     Profiler API Client
     ----------------------------
 
@@ -87,30 +180,28 @@ def cli(config, verbose, app_host, token, log_file, log_level):
 
         PROFILER_APP_HOST = host (protocol://address:port).
         PROFILER_API_TOKEN = API token (use get_token to obtain one).
+
+    However the client largely uses config.ini which you can check config using
+    print_config.
     """
-    config.verbose = verbose
+    if token:
+        config.settings['profiler_api_token'] = token
 
-    if not config.verbose:
-        requests.packages.urllib3.disable_warnings()
-
-    config.token = token
-
-    if not config.token:
+    if not config.settings['profiler_api_token']:
         click.secho('You are not authenticated.', fg='red')
 
     else:
-        click.secho('You are authenticated. X-Auth headers set.', fg='green')
-        config.headers['X-Auth'] = config.token
+        config.headers['X-Auth'] = config.settings['profiler_api_token']
 
     if app_host:
-        config.app_host = app_host
+        config.settings['profiler_app_host'] = app_host
 
     config.log_file = log_file
     config.log_level = config.log_levels[log_level]
 
     if config.log_file:
-        logging.basicConfig(filename=config.log_file,
-                            level=config.log_level,
+        logging.basicConfig(filename=config.settings['log_file'],
+                            level=config.settings['log_level'],
                             format='%(asctime)s - %(levelname)s - %(message)s')
     else:
         logging.basicConfig(level=config.log_level,
@@ -125,7 +216,7 @@ def get_token(config, username, password):
     """
     Obtain an API token.
     """
-    auth_url = config.app_host + '/api/authentication/'
+    auth_url = config.settings['profiler_app_host'] + '/api/authentication/'
     payload = {'email': username, 'password': password}
     response = requests.post(auth_url, json=payload, verify=False)
     response.raise_for_status()
@@ -136,6 +227,18 @@ def get_token(config, username, password):
         raise ProfilerError('Authentication failed.')
 
     click.secho(token, fg='green')
+    click.echo("Don't forget to update config.ini with the new token")
+
+
+@cli.command()
+@pass_config
+def print_config(config):
+    """
+    Print configuration.
+    """
+    click.echo('Contents of {}:'.format(config.config_path))
+    for k, v in config.settings.items():
+        print('{}={}'.format(k.upper(), v))
 
 
 @cli.command()
@@ -167,8 +270,10 @@ def submit_usernames(config,
     :param chunk_size (int): usernames to sumbit per API requests.
     :param interval (int): interval in seconds between API requests.
     """
-    if not config.token:
-        raise ProfilerError('Token is required for this function.')
+    if not config.settings['profiler_api_token']:
+        click.secho('You need an API token for this. Run "get_token" '
+                    'before proceeding', fg='red')
+        sys.exit()
 
     reader = csv.reader(input_file)
     usernames = [item[0] for item in list(reader)]
@@ -178,7 +283,7 @@ def submit_usernames(config,
     else:
         click.echo('[*] Extracted {} usernames.'.format(len(usernames)))
 
-    username_url = config.app_host + '/api/username/'
+    username_url = config.settings['profiler_app_host'] + '/api/username/'
     responses = []
 
     with click.progressbar(length=len(usernames),
@@ -195,11 +300,13 @@ def submit_usernames(config,
                                      json=payload,
                                      verify=False)
             response.raise_for_status()
-            responses.append(response.content)
+            responses.append(response.content.decode('utf-8'))
             time.sleep(interval)
 
     click.secho('Submitted {} usernames.'.format(len(usernames)), fg='green')
-    pprint(responses)
+
+    for response in responses:
+        print_json(responses)
 
 
 @cli.command()
@@ -212,7 +319,7 @@ def submit_usernames(config,
 @click.option('--interval',
               type=click.FLOAT,
               required=False,
-              default=0.25)
+              default=1)
 @click.option('--ignore-missing',
               is_flag=True,
               help='Ignore missing results.')
@@ -242,8 +349,10 @@ def get_results(config,
     :param output_file (file): output file csv or jsonlines.
     :param interval (int): interval in seconds between API requests.
     """
-    if not config.token:
-        raise ProfilerError('Token is required for this function.')
+    if not config.settings['profiler_api_token']:
+        click.secho('You need an API token for this. Run "get_token" '
+                    'before proceeding', fg='red')
+        sys.exit()
 
     reader = csv.reader(input_file)
     usernames = [item[0] for item in list(reader)]
@@ -261,7 +370,8 @@ def get_results(config,
         for username in bar:
             # Get results for username
             archive_url = '{}/api/archive/?username={}' \
-                          .format(config.app_host, username)
+                          .format(config.settings['profiler_app_host'],
+                                  username)
             response = requests.get(archive_url,
                                     headers=config.headers,
                                     verify=False)
@@ -278,10 +388,11 @@ def get_results(config,
 
             for archive in archives:
                 data = []
-                results = get_job_results(config.app_host,
+                results = get_job_results(config.settings['profiler_app_host'],
                                           config.headers,
-                                          archive['job_id'],
+                                          archive['tracker_id'],
                                           interval)
+
                 for result in results:
                     row = [username,
                            result['site_name'],
@@ -293,13 +404,16 @@ def get_results(config,
                 # Write to output file
                 writer.writerows(data)
                 time.sleep(interval)
+
     end = datetime.datetime.now()
     elapsed = end - start
     hours, remainder = divmod(elapsed.total_seconds(), 3600)
     minutes, seconds = divmod(remainder, 60)
+
     msg = '{} username results completed in {} hours, {} minutes, ' \
           'and {} seconds.' \
           .format(len(usernames), hours, minutes, seconds)
+
     click.secho(msg, fg='green')
 
 
@@ -332,8 +446,10 @@ def get_zip_results(config,
     :param output_dir (dir): output directory for zip archives.
     :param interval (int): interval in seconds between API requests.
     """
-    if not config.token:
-        raise ProfilerError('Token is required for this function.')
+    if not config.settings['profiler_api_token']:
+        click.secho('You need an API token for this. Run "get_token" '
+                    'before proceeding', fg='red')
+        sys.exit()
 
     reader = csv.reader(input_file)
     usernames = [item[0] for item in list(reader)]
@@ -349,7 +465,8 @@ def get_zip_results(config,
         for username in bar:
             # Get results for username
             archive_url = '{}/api/archive/?username={}' \
-                          .format(config.app_host, username)
+                          .format(config.settings['profiler_app_host'],
+                                  username)
             response = requests.get(archive_url,
                                     headers=config.headers,
                                     verify=False)
@@ -403,27 +520,27 @@ def get(config, resource, pretty):
 
     Example: /api/workers/
     """
-    if not config.token:
+    if not config.settings.get('profiler_api_token', None):
         raise ProfilerError('"--token" is required for this function.')
 
-    url = urllib.parse.urljoin(config.app_host, resource)
+    url = urllib.parse.urljoin(config.settings['profiler_app_host'], resource)
     response = requests.get(url, headers=config.headers, verify=False)
     response.raise_for_status()
 
     try:
         if pretty:
-            return pprint(response.json())
+            print_json(response.content.decode('utf-8'))
         else:
-            return click.echo(response.json())
+            print(json.dumps(response.json()))
     except Exception:
         raise
 
 
-def get_job_results(app_host, headers, job_id, interval):
+def get_job_results(app_host, headers, tracker_id, interval):
     """
-    Fetch all results for job_id.
+    Fetch all results for tracker_id.
     """
-    result_url = '{}/api/result/job/{}'.format(app_host, job_id)
+    result_url = '{}/api/result/job/{}'.format(app_host, tracker_id)
     page = 1
     pages = 1
     results = []
