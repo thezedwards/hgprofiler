@@ -306,7 +306,7 @@ def submit_usernames(config,
     click.secho('Submitted {} usernames.'.format(len(usernames)), fg='green')
 
     for response in responses:
-        print_json(responses)
+        print_json(response)
 
 
 @cli.command()
@@ -387,7 +387,6 @@ def get_results(config,
             archives = response.json().get('archives', [])
 
             for archive in archives:
-                data = []
                 results = get_job_results(config.settings['profiler_app_host'],
                                           config.headers,
                                           archive['tracker_id'],
@@ -400,10 +399,17 @@ def get_results(config,
                            result['status'],
                            result['error']
                            ]
-                    data.append(row)
-                # Write to output file
-                writer.writerows(data)
+                    # Write to output file
+                    writer.writerow(row)
+
+                output_file.flush()
                 time.sleep(interval)
+
+    if input_file:
+        input_file.close()
+
+    if output_file:
+        output_file.close()
 
     end = datetime.datetime.now()
     elapsed = end - start
@@ -540,7 +546,7 @@ def get_job_results(app_host, headers, tracker_id, interval):
     """
     Fetch all results for tracker_id.
     """
-    result_url = '{}/api/result/job/{}'.format(app_host, tracker_id)
+    result_url = '{}/api/result/tracker/{}'.format(app_host, tracker_id)
     page = 1
     pages = 1
     results = []
