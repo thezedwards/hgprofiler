@@ -1,18 +1,13 @@
-import json
 from flask import g, jsonify, request
 from flask.ext.classy import FlaskView
 from werkzeug.exceptions import BadRequest, NotFound
 from sqlalchemy.exc import IntegrityError
 
-import app.config
 from app.authorization import login_required
 from app.notify import notify_mask_client
 from app.rest import (get_int_arg,
-                      get_paging_arguments,
-                      validate_request_json,
-                      validate_json_attr)
+                      get_paging_arguments)
 from model import Archive
-import worker
 
 
 class ArchiveView(FlaskView):
@@ -79,7 +74,7 @@ class ArchiveView(FlaskView):
         query = g.db.query(Archive)
 
         if username:
-            query = query.filter(Archive.username==username)
+            query = query.filter(Archive.username == username)
 
         total_count = query.count()
 
