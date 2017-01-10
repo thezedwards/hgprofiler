@@ -15,7 +15,7 @@ class ResultView(FlaskView):
 
     def index(self):
         '''
-        Return an array of result archives.
+        Return an array of results.
 
         **Example Response**
 
