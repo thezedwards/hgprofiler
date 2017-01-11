@@ -1,9 +1,10 @@
 """ Views for the index. """
 
-from flask import render_template, request
+from flask import render_template
 from werkzeug.exceptions import NotFound
 
 from app import flask_app
+
 
 @flask_app.route('/', defaults={'path': None})
 @flask_app.route('/<path:path>')
@@ -19,4 +20,4 @@ def angular(path):
     if path is not None and path.startswith('api/'):
         raise NotFound('There is no API endpoint matching "%s".' % path)
 
-    return render_template("root.html")
+    return render_template("root.html", base_href=flask_app.base_href)

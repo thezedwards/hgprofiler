@@ -289,6 +289,17 @@ installation as described above. Now build the development image:
 You only need to build the development image when the underlying production
 image changes.
 
+Because the profiler code is mounted from the host, the permissions need to be updated
+within the container to ensure static files can be accessed by the webserver:
+
+.. code::
+
+    $ docker exec -it profiler_app \
+        chown -R hgprofiler:hgprofiler \
+        /hgprofiler/data \
+        /hgprofiler/static/combined \
+        /hgprofiler/static/.webassets-cache
+
 Now to run the development environment:
 
 .. code::
@@ -335,7 +346,7 @@ The dev server requires that you have symlinked Dart packages into your
 
 .. code::
 
-    $ docker exec -it profiler_app pub get
+    $ docker exec -it profiler_app  su -c "cd /hgprofiler/static/dart/; pub get --packages-dir"
 
 This will place the symlinks into your mounted volume. When viewed from the host
 machine, the symlinks will look broken because they point to paths inside the

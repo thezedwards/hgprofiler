@@ -75,6 +75,11 @@ def bootstrap(debug=False, debug_db=False, latency=None, log_level=None):
     flask_app.debug_db = debug_db
     flask_app.latency = latency
 
+    if flask_app.debug:
+        flask_app.base_href = '/static/dart/web/'
+    else:
+        flask_app.base_href = '/static/dart/build/web/'
+
     config = app.config.get_config()
 
     if log_level is not None:
