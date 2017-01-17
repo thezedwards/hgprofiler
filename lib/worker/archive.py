@@ -56,8 +56,9 @@ def create_zip(filename, results):
 
     # Create list of images
     for result in results:
-        # Add the name to results for the csv output
-        files.append((result.image_file.name, result.image_file.relpath()))
+        if result.status == 'f':
+            # Add the name to results for the csv output
+            files.append((result.image_file.name, result.image_file.relpath()))
 
     # Generate in-memory results csv
     csv_string = results_csv_string(results)
