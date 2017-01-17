@@ -1,11 +1,12 @@
-from flask import g, jsonify
+from flask import g, jsonify, request
 from flask.ext.classy import FlaskView, route
 import rq
-from rq.exceptions import NoSuchJobError, UnpickleError
+from rq.exceptions import UnpickleError
 from werkzeug.exceptions import NotFound
 
 from app.authorization import login_required
-from app.rest import url_for
+from app.rest import get_paging_arguments
+
 
 class TasksView(FlaskView):
     ''' Data about background tasks. '''
@@ -43,7 +44,28 @@ class TasksView(FlaskView):
 
         return jsonify(message='ok')
 
-    @route('failed')
+    @route('failed', methods=['DELETE'])
+    def delete_all_failed(self):
+        '''
+        Delete all failed tasks.
+
+        :<header Content-Type: application/json
+        :<header X-Auth: the client's auth token
+
+        :>header Content-Type: application/json
+
+        :status 200: ok
+        :status 401: authentication required
+        :status 403: you must be an administrator
+        '''
+        with rq.Connection(g.redis):
+
+            for job in rq.get_failed_queue().jobs:
+                job.delete()
+
+        return jsonify(message='ok')
+
+    @route('failed', methods=['GET'])
     def failed_tasks(self):
         '''
         Get data about failed tasks.
@@ -64,10 +86,13 @@ class TasksView(FlaskView):
                     },
                     ...
                 ]
+                "total_count": 5
             }
 
         :<header Content-Type: application/json
         :<header X-Auth: the client's auth token
+        :query page: the page number to display (default: 1)
+        :query rpp: the number of results per page (default: 10)
 
         :>header Content-Type: application/json
         :>json list failed: list of failed tasks
@@ -76,10 +101,10 @@ class TasksView(FlaskView):
         :>json str failed[n]["function"]: the function call that was originally
             queued
         :>json str failed[n]["id"]: unique identifier
-        :>json str failed[n]["id"]: ID of profile for which the task was being
-            performed
+        :>json str failed[n]["type"]: the type of task performed
         :>json str failed[n]["original_queue"]: the queue that this task was
             initially placed on before it failed
+        :>json int total_count: total number of failed tasks
 
         :status 200: ok
         :status 401: authentication required
@@ -87,9 +112,12 @@ class TasksView(FlaskView):
         '''
 
         failed_tasks = list()
+        page, results_per_page = get_paging_arguments(request.args)
+        total_count = 0
 
         with rq.Connection(g.redis):
             for failed_task in rq.get_failed_queue().jobs:
+                total_count += 1
                 try:
                     if 'description' in failed_task.meta:
                         desc = failed_task.meta['description']
@@ -125,7 +153,12 @@ class TasksView(FlaskView):
                         'original_queue': failed_task.origin,
                     })
 
-        return jsonify(failed=failed_tasks)
+        start = (page - 1) * results_per_page
+        end = start + results_per_page
+        failed_results = failed_tasks[start:end]
+
+        return jsonify(failed=failed_results,
+                       total_count=total_count)
 
     @route('job/<id_>')
     def job(self, id_):
@@ -182,7 +215,7 @@ class TasksView(FlaskView):
                         current=job.meta['current'],
                         description=job.meta['description'],
                         id=job.id,
-                        progress=job.meta['current']  / job.meta['total'],
+                        progress=job.meta['current'] / job.meta['total'],
                         total=job.meta['total'],
                         type=job.meta['type'] if 'type' in job.meta else None
                     )
@@ -317,12 +350,12 @@ class TasksView(FlaskView):
                         else:
                             description = None
 
-                        if  'current' in job.meta:
+                        if 'current' in job.meta:
                             current = job.meta['current']
                         else:
                             current = None
 
-                        if  'total' in job.meta:
+                        if 'total' in job.meta:
                             total = job.meta['total']
                         else:
                             total = None
@@ -330,7 +363,7 @@ class TasksView(FlaskView):
                         if current is None or total is None:
                             progress = None
                         else:
-                            progress = current/total
+                            progress = current / total
 
                         job_json = {
                             'current': current,
@@ -338,7 +371,8 @@ class TasksView(FlaskView):
                             'id': job.id,
                             'progress': progress,
                             'total': total,
-                            'type': job.meta['type'] if 'type' in job.meta else None
+                            'type': (job.meta['type'] if 'type'
+                                     in job.meta else None)
                         }
 
                 workers.append({

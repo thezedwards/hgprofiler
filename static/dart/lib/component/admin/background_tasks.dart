@@ -25,6 +25,7 @@ class BackgroundTasksComponent {
     bool loadingQueues = false;
     bool loadingWorkers = false;
     List<Map> failed;
+    int failed_count = 0;
     List<Map> queues;
     List<Map> workers;
 
@@ -59,12 +60,25 @@ class BackgroundTasksComponent {
                 for (int i = 0; i < this.failed.length; i++) {
                     if (this.failed[i]['id'] == taskId) {
                         this.failed.removeAt(i);
+                        this.failed_count = this.failed_count - 1;
                         break;
                     }
                 }
             })
             .whenComplete(resetButton);
     }
+
+    /// Handle a button press to remove all failed tasks.
+    void removeAllFailedTasks(Event event, String taskId, Function resetButton) {
+        this._api
+            .delete('/api/tasks/failed', needsAuth: true)
+            .then((response) {
+                this.failed.clear();
+                this.failed_count = 0;
+            })
+            .whenComplete(resetButton);
+    }
+
 
     /// Fetch failed task data.
     Future _fetchFailedTasks() {
@@ -75,6 +89,7 @@ class BackgroundTasksComponent {
             .get('/api/tasks/failed', needsAuth: true)
             .then((response) {
                 this.failed = response.data['failed'];
+                this.failed_count = response.data['total_count'];
             })
             .whenComplete(() {
                 this.loadingFailedTasks = false;

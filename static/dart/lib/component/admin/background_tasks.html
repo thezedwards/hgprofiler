@@ -90,13 +90,26 @@
       <i ng-show='loadingFailedTasks' class="fa fa-spinner fa-pulse fa-spin"></i>
   </div>
   <div class="panel-body">
+    <div class="row" ng-show='failed.length > 0'>
+      <div class="col-sm-12">
+        Showing 1-{{failed.length}} of <strong>{{failed_count}}</strong> failed tasks.
+      </div>
+    </div>
     <table class='table table-striped'>
       <thead>
         <tr>
           <th>Description</th>
           <th>Original Queue</th>
           <th>Detail</th>
-          <th>&nbsp;</th>
+          <th>
+            <busy-button type='danger'
+                         size='sm'
+                         data='1'
+                         class='pull-right'
+                         click='removeAllFailedTasks'>
+              <i class='fa fa-trash'></i> Remove All
+            </busy-button>
+          </th>
         </tr>
       </thead>
       <tbody>
