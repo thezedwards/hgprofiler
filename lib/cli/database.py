@@ -889,6 +889,16 @@ class DatabaseCli(cli.BaseCli):
         )
         session.add(single_muslim)
 
+        # Skype
+        skype = Site(
+            name='Skype',
+            url='https://login.live.com/login.srf?username=%s',
+            status_code=200,
+            test_username_pos='andy123',
+            test_username_neg='focgiji6eheca9c4'
+        )
+        session.add(skype)
+
         slashdot = Site(
             name='Slashdot',
             url='https://slashdot.org/~%s',
