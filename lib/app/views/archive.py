@@ -55,11 +55,15 @@ class ArchiveView(FlaskView):
         :>json int archives[n].id: the unique id of this archive
         :>json str archives[n].username: the archive username
         :>json str archives[n].date: the archive creation date
-        :>json str archives[n].site_count: the number of site results in this archive
-        :>json str archives[n].found_count: the number sites in this archive with a username match
-        :>json str archives[n].not_found_count: the number sites in this archive with no username
+        :>json str archives[n].site_count: the number of site
+            results in this archive
+        :>json str archives[n].found_count: the number sites in
+            this archive with a username match
+        :>json str archives[n].not_found_count: the number sites in
+            this archive with no username
         match
-        :>json str archives[n].error_count: the number sites in this archive that raised an error
+        :>json str archives[n].error_count: the number sites in
+            this archive that raised an error
         while searching for username
         :>json str archives[n].zip_file: the zip file location for this archive
 

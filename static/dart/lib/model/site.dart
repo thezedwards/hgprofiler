@@ -26,7 +26,6 @@ class Site {
 
         this.name = name;
         this.url = url;
-        this.category = category;
         this.statusCode = statusCode;
         this.matchType = matchType;
         this.matchExpr = matchExpr;

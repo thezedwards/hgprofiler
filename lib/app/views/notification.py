@@ -19,10 +19,11 @@ class NotificationView(FlaskView):
 
     CHANNELS = (
         'archive',
-        'group',
+        'category',
         'result',
         'site',
         'worker',
+        'proxy',
     )
 
     __should_quit = False

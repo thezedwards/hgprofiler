@@ -47,7 +47,7 @@ class SiteComponent extends Object
     String newSiteTestUsernamePos, newSiteTestUsernamePosUrl;
     String newSiteTestUsernameNeg, newSiteTestUsernameNegUrl;
     String newSiteStatusCode;
-    List<String>  siteHeaderKeys = new List<String>(); 
+    List<String>  siteHeaderKeys = new List<String>();
     Map<String, String> siteHeaders = new Map<String, String>();
     Map<String, String> newSiteHeaders = new Map<String, String>();
     Pager pager;
@@ -157,7 +157,7 @@ class SiteComponent extends Object
     }
 
     /// Set site for deletion and show confirmation modal
-    void setDeleteId(String id_) {
+    void setDeleteId(int id_) {
         this.deleteSiteId = id_;
         String selector = '#confirm-delete-modal';
         DivElement modalDiv = this._element.querySelector(selector);
@@ -184,7 +184,7 @@ class SiteComponent extends Object
             InputElement valueInput = div.querySelector(valueSelector);
             this.newSiteHeaders[nameInput.value] = valueInput.value;
         });
-        
+
     }
 
     /// Set site for deletion and show confirmation modal

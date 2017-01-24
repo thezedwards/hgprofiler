@@ -11,7 +11,7 @@ from app.rest import (get_int_arg,
                       validate_request_json,
                       validate_json_attr)
 from helper.functions import random_string
-from model import Site
+from model import Site, Category
 
 # Dictionary of site attributes used for validation of json POST/PUT requests
 SITE_ATTRS = {
@@ -170,6 +170,9 @@ class SiteView(FlaskView):
            on site (used for testing)
         :<json array sites[n].headers: custom headers
 
+        :>header Content-Type: application/json
+        :>json string message: API response message
+
         :status 200: created
         :status 400: invalid request body
         :status 401: authentication required
@@ -187,6 +190,9 @@ class SiteView(FlaskView):
                         raise BadRequest('At least one of the '
                                          'following is required: '
                                          'status code or page match.')
+
+            if not site_json['url'].contains('%s'):
+                        raise BadRequest('URL must contain replacement character %s')
 
         # Save sites
         for site_json in request_json['sites']:
@@ -246,16 +252,14 @@ class SiteView(FlaskView):
         ..sourcecode:: json
 
             {
-                {
-                    "name": "bebo",
-                    "url": "http://bebo.com/usernames/search=%s",
-                    "status_code": 200,
-                    "match_type": "text",
-                    "match_expr": "Foo Bar Baz",
-                    "test_username_pos": "bob",
-                    "test_username_ne": "adfjf393rfjffkjd",
-                    "headers": {"referer": "http://www.google.com"},
-                }
+                "name": "bebo",
+                "url": "http://bebo.com/usernames/search=%s",
+                "status_code": 200,
+                "match_type": "text",
+                "match_expr": "Foo Bar Baz",
+                "test_username_pos": "bob",
+                "test_username_ne": "adfjf393rfjffkjd",
+                "headers": {"referer": "http://www.google.com"},
             }
 
         **Example Response**
@@ -398,15 +402,20 @@ class SiteView(FlaskView):
         if site is None:
             raise NotFound("Site '%s' does not exist." % id_)
 
-        # Delete site
         try:
+            # Remove site from categories
+            categories = g.db.query(Category).filter(
+                Category.sites.contains(site)).all()
+
+            for category in categories:
+                category.sites.remove(site)
+
+            # Delete site
             g.db.delete(site)
             g.db.commit()
-        except IntegrityError:
+        except Exception as e:
             g.db.rollback()
-            raise BadRequest('"{}" must be removed from all groups '
-                             'before deleting.'
-                             .format(site.name))
+            raise BadRequest(e)
 
         # Send redis notifications
         notify_mask_client(

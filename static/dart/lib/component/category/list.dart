@@ -115,7 +115,7 @@ class CategoryListComponent extends Object
         this._inputEl = this._element.querySelector('.add-category-form input');
     }
 
-    /// Show the "add categories" dialog.
+    /// Hide the "add categories" dialog.
     void hideAddDialog() {
         this.showAdd = false;
         this.editCategoryId = null;
@@ -410,7 +410,6 @@ class CategoryListComponent extends Object
     /// Listen for category updates.
     void _categoryListener(Event e) {
         Map json = JSON.decode(e.data);
-        window.console.debug(json);
 
         if (json['error'] == null) {
             if (json['status'] == 'created') {

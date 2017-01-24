@@ -31,6 +31,11 @@ class HGProfilerRouteInitializer implements Function {
                 preEnter: auth.requireLogin,
                 viewHtml: '<configuration-list></configuration-list>'
             ),
+            'proxies': ngRoute(
+                path: '/admin/proxies',
+                preEnter: auth.requireLogin,
+                viewHtml: '<proxy-list></proxy-list>'
+            ),
             //'home': ngRoute(
             //    path: '/',
             //    preEnter: auth.requireLogin,
