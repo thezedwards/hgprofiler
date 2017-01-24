@@ -5,11 +5,13 @@ from urllib.parse import urljoin
 
 import parsel
 import requests
+from sqlalchemy.sql.expression import func
+from sqlalchemy.orm.exc import NoResultFound
 
 import app.database
 import app.queue
 import worker
-from model import File, Result, Site
+from model import File, Result, Site, Proxy
 from model.configuration import get_config
 
 USER_AGENT = 'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:40.0) '\
@@ -86,7 +88,7 @@ def test_site(site_id, tracker_id, request_timeout=10):
 
 
 def check_username(username, site_id, category_id, total,
-                   tracker_id, request_timeout=10, test=False):
+                   tracker_id, test=False):
     """
     Check if `username` exists on the specified site.
     """
@@ -100,8 +102,7 @@ def check_username(username, site_id, category_id, total,
 
     # Check site.
     splash_result = _splash_username_request(username,
-                                             site,
-                                             request_timeout)
+                                             site)
     image_file = _save_image(db_session, splash_result)
 
     # Save result to DB.
@@ -135,7 +136,7 @@ def check_username(username, site_id, category_id, total,
     return result.id
 
 
-def splash_request(target_url, headers={}, request_timeout=10):
+def splash_request(target_url, headers={}, request_timeout=None):
     ''' Ask splash to render a page. '''
     db_session = worker.get_session()
     splash_url = get_config(db_session, 'splash_url', required=True).value
@@ -143,6 +144,11 @@ def splash_request(target_url, headers={}, request_timeout=10):
                              required=True).value
     splash_pass = get_config(db_session, 'splash_password',
                              required=True).value
+
+    if request_timeout is None:
+        request_timeout = get_config(db_session, 'splash_request_timeout',
+                                     required=True).value
+
     auth = (splash_user, splash_pass)
     splash_headers = {'content-type': 'application/json'}
 
@@ -161,6 +167,12 @@ def splash_request(target_url, headers={}, request_timeout=10):
         'headers': headers
     }
 
+    # Use proxy if enabled
+    proxy = random_proxy(db_session)
+
+    if proxy:
+        payload['proxy'] = proxy
+
     splash_response = requests.post(
         urljoin(splash_url, 'render.json'),
         headers=splash_headers,
@@ -171,7 +183,7 @@ def splash_request(target_url, headers={}, request_timeout=10):
     return splash_response
 
 
-def _splash_username_request(username, site, request_timeout):
+def _splash_username_request(username, site):
     """
     Ask splash to render a `username` search
     result for `site`.
@@ -182,8 +194,7 @@ def _splash_username_request(username, site, request_timeout):
         site.headers = {}
 
     splash_response = splash_request(target_url,
-                                     site.headers,
-                                     request_timeout)
+                                     site.headers)
 
     result = {
         'code': splash_response.status_code,
@@ -268,3 +279,31 @@ def _save_image(db_session, scrape_result):
         )
 
     return image_file
+
+
+def random_proxy(db_session=None):
+    """
+    Return a random proxy as URL string.
+    """
+    if db_session is None:
+        db_session = worker.get_session()
+
+    try:
+        proxy = db_session.query(Proxy).filter(Proxy.active == True) \
+            .order_by(func.random()).limit(1).one() # noqa
+    except NoResultFound:
+        return None
+
+    proxy_url = '{}://'.format(proxy.protocol)
+
+    if proxy.username:
+        proxy_url += '{}:'.format(proxy.username)
+
+        if proxy.password:
+            proxy_url += proxy.password
+
+        proxy_url += '@'
+
+    proxy_url += '{}:{}'.format(proxy.host, proxy.port)
+
+    return proxy_url

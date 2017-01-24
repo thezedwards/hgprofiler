@@ -9,6 +9,7 @@ import 'package:logging/logging.dart';
 import 'package:hgprofiler/authentication.dart';
 import 'package:hgprofiler/component/admin/background_tasks.dart';
 import 'package:hgprofiler/component/admin/configuration.dart';
+import 'package:hgprofiler/component/admin/proxies.dart';
 import 'package:hgprofiler/component/admin/index.dart';
 import 'package:hgprofiler/component/archive.dart';
 import 'package:hgprofiler/component/breadcrumbs.dart';
@@ -81,6 +82,7 @@ class HGProfilerApplication extends Module {
         bind(NavComponent);
         bind(PagerComponent);
         bind(ProgressBarComponent);
+        bind(ProxiesComponent);
         bind(NodeValidator, toValue: nodeValidator);
         bind(RestApiController);
         bind(RouteInitializerFn, toImplementation: HGProfilerRouteInitializer);

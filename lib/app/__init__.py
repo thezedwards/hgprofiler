@@ -246,6 +246,9 @@ def init_views(flask_app, config):
     from app.views.configuration import ConfigurationView
     ConfigurationView.register(flask_app, route_base='/api/configuration/')
 
+    from app.views.proxies import ProxiesView
+    ProxiesView.register(flask_app, route_base='/api/proxies/')
+
     from app.views.file import FileView
     FileView.register(flask_app, route_base='/api/file/')
 

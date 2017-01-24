@@ -92,7 +92,19 @@ class DebugCli(cli.BaseCli):
             splash_response = splash_request(target_url=args.url)
 
             if args.headers:
-                data = splash_response.headers
+                # data = splash_response.headers
+                try:
+                    response_json = splash_response.json()
+                except:
+                    raise
+
+                try:
+                    json_data = response_json['history'][0]['response']['headers']
+                    data = json.dumps(json_data,
+                                      indent=4,
+                                      sort_keys=True)
+                except:
+                    raise
 
             elif args.body:
                 data = splash_response.json()['html']
