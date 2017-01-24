@@ -1,0 +1,247 @@
+<breadcrumbs crumbs=crumbs></breadcrumbs>
+<!--
+<div class='alert alert-danger' role='alert' ng-show='error != null'>
+  {{error}}
+</div>
+-->
+
+<div ng-repeat='message in messages'>
+  <div class='alert alert-{{message["type"]}}' role='alert'>
+    <button ng-click="messages.remove(message)" class="close" aria-label="Close">
+      <span aria-hidden="true">&times;</span>
+    </button>
+    <i class='fa fa-check-circle fa-2x pull-left' ng-show="message['icon']"></i>
+    {{message["text"]}}
+  </div>
+  <div class='clear'></div>
+</div>
+
+<div ng-show="showAddEdit" class="row">
+  <div class="col-sm-12">
+    <div class="panel {{dialogClass}}">
+      <div class="panel-heading">
+        <i class="fa fa-exchange"></i>
+        {{dialogTitle}}
+      </div>
+      <div class="panel-body">
+
+        <form class='form-horizontal add-proxy-form'>
+
+          <div class="form-group">
+            <label class="col-sm-1" for='proxy-protocol'>Protocol*</label>
+            <div class="col-sm-3">
+              <select class="form-control"
+                      id="proxy-protocol"
+                      ng-model="newProxyProtocol">
+                  <option>http</option>
+                  <option>https</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="col-sm-1" for='proxy-host'>Host*</label>
+            <div class="col-sm-3">
+              <input type='text'
+                     class='form-control'
+                     ng-model='newProxyHost'
+                     id='proxy-host'
+                     placeholder='Enter proxy host.'>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="col-sm-1" for='proxy-port'>Port*</label>
+            <div class="col-sm-3">
+              <input type='text'
+                     class='form-control'
+                     ng-model='newProxyPort'
+                     id='proxy-port'
+                     placeholder='Enter proxy port.'>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="col-sm-1" for='proxy-username'>Username</label>
+            <div class="col-sm-3">
+              <input type='text'
+                     class='form-control'
+                     ng-model='newProxyUsername'
+                     id='proxy-username'
+                     placeholder='Enter proxy username.'>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="col-sm-1" for='proxy-password'>Password</label>
+            <div class="col-sm-3">
+              <input type='text'
+                     class='form-control'
+                     ng-model='newProxyPassword'
+                     id='proxy-password'
+                     placeholder='Enter proxy password.'>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <div class="col-sm-1"><strong>Active</strong></div>
+            <div class="col-sm-3">
+              <div class="material-switch">
+                <input id="proxy-active"
+                       type="checkbox"
+                       ng-model='newProxyActive'
+                       ng-show='newProxyActive == true'
+                       checked />
+                <input id="proxy-active"
+                       type="checkbox"
+                       ng-show='newProxyActive == false'
+                       ng-model='newProxyActive'/>
+                <label for="proxy-active" class="label-success"></label>
+              </div>
+            </div>
+          </div>
+
+
+          <div class="form-group">
+            <div class='col-sm-12'>
+              <div class="pull-right">
+                <button class='btn btn-default'
+                        ng-click='hideAddDialog()'
+                        ng-disabled='submittingProxy'>
+                  Cancel
+                </button>
+                <busy-button id='add-proxy-button'
+                             type='primary'
+                             ng-show='editProxyId != null'
+                             click='saveProxy'>
+                 <i class="fa fa-check"></i> Save
+                </busy-button>
+                <busy-button id='add-proxy-button'
+                             type='success'
+                             ng-show='editProxyId == null'
+                             click='addProxy'>
+                 <i class="fa fa-check"></i> Add
+                </busy-button>
+              </div>
+
+            </div>
+          </div>
+
+        </form>
+
+        <div ng-show='proxyError != null' class='alert alert-danger' role='alert'>
+          <p>{{proxyError}}</p>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+<div class="panel panel-default">
+  <div class="panel-heading">
+      <i class="fa fa-bars"></i>
+      Proxies
+      <i ng-show='loading > 0' class="fa fa-spinner fa-pulse fa-spin"></i>
+  </div>
+  <div class="panel-body">
+    <div class="row">
+      <div class="col-sm-12">
+        <button ng-click='showAddEditDialog("add")'
+                ng-disabled='showAddEdit'
+                class='btn btn-success btn-sm pull-right btn-add'>
+                <i class='fa fa-plus'></i>
+                Add Proxy
+        </button>
+      </div>
+    </div>
+    <table class='table table-striped'>
+      <thead>
+        <tr>
+          <th>Protocol</th>
+          <th>Host</th>
+          <th>Port</th>
+          <th>Username</th>
+          <th>Password</th>
+          <th class="text-center">Active</th>
+          <th class="text-center">Edit</th>
+          <th class="text-center">Delete</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr ng-show='keys.length == 0'>
+          <td colspan='100' class='no-rows'>There are no proxies.</td>
+        </tr>
+        <tr ng-repeat='key in keys'>
+          <td>
+            {{proxies[key].protocol}}
+          </td>
+          <td>
+            {{proxies[key].host}}
+          </td>
+          <td>
+            {{proxies[key].port}}
+          </td>
+          <td>
+            {{proxies[key].username}}
+          </td>
+          <td>
+            {{proxies[key].password}}
+          </td>
+          <td class="text-center">
+            <i ng-show="proxies[key].active == true"
+              class="fa fa-circle success">
+            </i>
+            <i ng-show="proxies[key].active == false"
+              class="fa fa-circle danger">
+            </i>
+          </td>
+          <td class="text-center button-col">
+            <button type='button'
+                    ng-click='editProxy(key)'
+                    ng-disabled='showAddEdit'
+                    class='btn btn-sm btn-primary'>
+                    <i class="fa fa-pencil"></i>
+            </button>
+          </td>
+          <td class="text-center button-col">
+            <button type='button'
+                    ng-click='setDeleteId(key)'
+                    ng-disabled='showAddEdit'
+                    class='btn btn-sm btn-danger'>
+                    <i class="fa fa-pencil"></i>
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class='modal fade' id='confirm-delete-modal' role='dialog'>
+  <div class='modal-dialog'>
+    <div class='modal-content'>
+      <div class='modal-header warning'>
+        <h4 class='modal-title'>Delete</h4>
+      </div>
+      <div class='modal-body'>
+        Are you sure you want to delete this proxy?
+      </div>
+      <div class='modal-footer'>
+        <busy-button id='confirm-delete-button'
+                     type='danger'
+                     class='pull-left'
+                     click='deleteProxy'>
+         <i class='fa fa-trash'></i> Delete
+        </busy-button>
+        <button type='button'
+                class='btn btn-default'
+                data-dismiss='modal'>
+          Cancel
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
