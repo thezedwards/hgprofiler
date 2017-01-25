@@ -91,35 +91,52 @@ class DebugCli(cli.BaseCli):
             self._logger.info('Requesting {}'.format(args.url))
             splash_response = splash_request(target_url=args.url)
 
-            if args.headers:
-                # data = splash_response.headers
-                try:
-                    response_json = splash_response.json()
-                except:
-                    raise
+            try:
+                response_json = splash_response.json()
+            except:
+                raise
 
-                try:
-                    json_data = response_json['history'][0]['response']['headers']
-                    data = json.dumps(json_data,
-                                      indent=4,
-                                      sort_keys=True)
-                except:
-                    raise
+            # Get response headers
+            try:
+                json_data = response_json['history'][0]['response']['headers']
+                headers = json.dumps(json_data,
+                                     indent=4,
+                                     sort_keys=True)
+            except:
+                import pdb
+                pdb.set_trace()
+
+            if args.headers:
+                data = headers
 
             elif args.body:
-                data = splash_response.json()['html']
+                try:
+                    data = response_json['html']
+                except KeyError:
+                    # Print headers on failure
+                    data = headers
 
             elif args.status_code:
                 data = splash_response.status_code
 
             elif args.image:
-                img = splash_response.json()['png']
-                data = base64.decodestring(img.encode('utf8'))
+                try:
+                    img = splash_response.json()['png']
+                    data = base64.decodestring(img.encode('utf8'))
+                except KeyError:
+                    # Print headers if no png
+                    data = headers
+                except:
+                    raise
 
             elif args.har:
-                data = json.dumps(splash_response.json()['har'],
-                                  indent=4,
-                                  sort_keys=True)
+                try:
+                    data = json.dumps(splash_response.json()['har'],
+                                      indent=4,
+                                      sort_keys=True)
+                except KeyError:
+                    # Print headers if no har
+                    data = headers
 
             else:
                 data = json.dumps(splash_response.json(),
