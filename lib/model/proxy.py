@@ -14,7 +14,7 @@ class Proxy(Base):
 
     id = Column(Integer, primary_key=True)
     protocol = Column(
-        Enum('http', 'https', name='proxy_protocol_types')
+        Enum('http', name='proxy_protocol_types')
     )
     host = Column(String(255), nullable=False)
     port = Column(Integer, nullable=False)
