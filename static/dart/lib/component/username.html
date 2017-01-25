@@ -186,7 +186,9 @@
   <div class='modal-dialog'>
     <div class='modal-content'>
       <div class='modal-header'>
-        <h4 class='modal-title'>{{screenshotResult.siteName}}</h4>
+        <h4 class='modal-title'>
+          <a target="_blank" href="{{screenshotResult.siteUrl}}">{{screenshotResult.siteName}}</a>
+        </h4>
       </div>
       <div class='modal-body'>
         <img ng-src='{{api.authorizeUrl(screenshotResult.imageFileUrl)}}' class="screenshot" />
