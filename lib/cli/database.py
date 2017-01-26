@@ -217,6 +217,15 @@ class DatabaseCli(cli.BaseCli):
         )
         session.add(bodybuilding)
 
+        bonanza = Site(
+            name='Bonanza',
+            url='http://www.bonanza.com/booths/%s',
+            match_type='css',
+            match_expr='h2.booth_title',
+            test_username_pos='crazyanniesstitchin'
+        )
+        session.add(bonanza)
+
         break_com = Site(
             name='Break',
             url='http://www.break.com/user/%s',
@@ -242,6 +251,15 @@ class DatabaseCli(cli.BaseCli):
             test_username_pos='dan'
         )
         session.add(car_domain)
+
+        cheezeburger = Site(
+            name='Cheezeburger',
+            url='http://profile.cheezburger.com/%s/',
+            match_type='css',
+            match_expr='div.profiles-wrapper',
+            test_username_pos='adiposecat'
+        )
+        session.add(cheezeburger)
 
         codeplex = Site(
             name='Codeplex',
@@ -270,6 +288,15 @@ class DatabaseCli(cli.BaseCli):
         )
         session.add(conferize)
 
+        connecting_singles = Site(
+            name='Connecting Singles',
+            url='http://www.connectingsingles.com/user/%s',
+            match_type='text',
+            match_expr='My Details',
+            test_username_pos='snobish'
+        )
+        session.add(connecting_singles)
+
         copy_taste = Site(
             name='Copytaste',
             url='http://copytaste.com/profile/%s',
@@ -277,6 +304,24 @@ class DatabaseCli(cli.BaseCli):
             test_username_pos='metegulec'
         )
         session.add(copy_taste)
+
+        covers = Site(
+            name='Covers',
+            url='http://www.covers.com/profiles/%s',
+            match_type='text',
+            match_expr='Member Since:',
+            test_username_pos='garysanders'
+        )
+        session.add(covers)
+
+        cracked = Site(
+            name='Cracked',
+            url='http://www.cracked.com/members/%s/',
+            match_type='xpath',
+            match_expr='//div[contains(@class, "profileHeight")]',
+            test_username_pos='jackbos'
+        )
+        session.add(cracked)
 
         cruisemates = Site(
             name='Cruisemates',
@@ -430,6 +475,14 @@ class DatabaseCli(cli.BaseCli):
         )
         session.add(foursquare)
 
+        four_twenty_singles = Site(
+            name='420 Singles',
+            url='https://420singles.com/members/%s',
+            status_code=200,
+            test_username_pos='kenturner'
+        )
+        session.add(four_twenty_singles)
+
         freesound = Site(
             name='Freesound',
             url='http://www.freesound.org/people/%s/',
@@ -454,6 +507,22 @@ class DatabaseCli(cli.BaseCli):
             test_username_pos='bob'
         )
         session.add(funny_or_die)
+
+        funny_junk = Site(
+            name='Funny Junk',
+            url='http://www.funnyjunk.com/user/%s',
+            status_code=200,
+            test_username_pos='themegas'
+        )
+        session.add(funny_junk)
+
+        gamespot = Site(
+            name='Gamespot',
+            url='http://www.gamespot.com/profile/%s/',
+            status_code=200,
+            test_username_pos='moonco'
+        )
+        session.add(gamespot)
 
         get_it_on = Site(
             name='GETitOn',
@@ -527,6 +596,15 @@ class DatabaseCli(cli.BaseCli):
             test_username_pos='bsaren'
         )
         session.add(if_this_then_that)
+
+        ign = Site(
+            name='IGN',
+            url='http://people.ign.com/%s',
+            match_type='css',
+            match_expr='div#activityStream',
+            test_username_pos='gamesetmatt'
+        )
+        session.add(ign)
 
         image_shack = Site(
             name='ImageShack',
@@ -602,6 +680,14 @@ class DatabaseCli(cli.BaseCli):
         )
         session.add(last_fm)
 
+        lava_place = Site(
+            name='Lave Place',
+            url='https://www.lavaplace.com/%s/',
+            status_code=200,
+            test_username_pos='vildai'
+        )
+        session.add(lava_place)
+
         law_of_attraction = Site(
             name='Law of Attraction',
             url='http://www.lawofattractionsingles.com/%s',
@@ -669,6 +755,14 @@ class DatabaseCli(cli.BaseCli):
         )
         session.add(meetzur)
 
+        metacritic = Site(
+            name='Metacritic',
+            url='http://www.metacritic.com/user/%s',
+            status_code=200,
+            test_username_pos='tryasummersault'
+        )
+        session.add(metacritic)
+
         mixcloud = Site(
             name='Mixcloud',
             url='https://www.mixcloud.com/%s/',
@@ -702,6 +796,14 @@ class DatabaseCli(cli.BaseCli):
             test_username_pos='hugebot'
         )
         session.add(mod_db)
+
+        mouth_shut = Site(
+            name='Mouth Shut',
+            url='http://www.mouthshut.com/%s',
+            status_code=200,
+            test_username_pos='mhmdabrar'
+        )
+        session.add(mouth_shut)
 
         muck_rack = Site(
             name='Muck Rack',
@@ -743,7 +845,6 @@ class DatabaseCli(cli.BaseCli):
         )
         session.add(netvibes)
 
-        # OKCupid
         okcupid = Site(
             name='OkCupid',
             url='https://www.okcupid.com/profile/%s',
@@ -753,6 +854,14 @@ class DatabaseCli(cli.BaseCli):
             test_username_pos='the_ferett'
         )
         session.add(okcupid)
+
+        operation_sports = Site(
+            name='Operation Sports',
+            url='http://www.operationsports.com/%s/',
+            status_code=200,
+            test_username_pos='eggie25'
+        )
+        session.add(operation_sports)
 
         pandora = Site(
             name='Pandora',
@@ -821,6 +930,14 @@ class DatabaseCli(cli.BaseCli):
         )
         session.add(plurk)
 
+        pregame = Site(
+            name='Pregame',
+            url='http://pregame.com/members/%s/default.aspx',
+            status_code=200,
+            test_username_pos='sleepyj'
+        )
+        session.add(pregame)
+
         rapid7_community = Site(
             name='Rapid7 Community',
             url='https://community.rapid7.com/people/%s',
@@ -853,6 +970,26 @@ class DatabaseCli(cli.BaseCli):
             test_username_pos='mehaase'
         )
         session.add(reddit)
+
+        rock_climbing = Site(
+            name='Rockclimbing',
+            url='http://www.rockclimbing.com/cgi-bin/'
+                'forum/gforum.cgi?username=%s;',
+            status_code=200,
+            match_type='text',
+            match_expr='Personal',
+            test_username_pos='epoch'
+        )
+        session.add(rock_climbing)
+
+        rotogrinders = Site(
+            name='Rotogrinders',
+            url='https://rotogrinders.com/profiles/%s',
+            match_type='text',
+            match_expr='Post Count:',
+            test_username_pos='thecomeup'
+        )
+        session.add(rotogrinders)
 
         scratch = Site(
             name='Scratch',
@@ -1010,6 +1147,14 @@ class DatabaseCli(cli.BaseCli):
         )
         session.add(steam)
 
+        stumble_upon = Site(
+            name='StumbleUpon',
+            url='http://www.stumbleupon.com/stumbler/%s ',
+            status_code=200,
+            test_username_pos='cooop3r'
+        )
+        session.add(stumble_upon)
+
         stupid_cancer = Site(
             name='Stupidcancer',
             url='http://stupidcancer.org/community/profile/%s',
@@ -1017,6 +1162,14 @@ class DatabaseCli(cli.BaseCli):
             test_username_pos='CatchMeYes'
         )
         session.add(stupid_cancer)
+
+        the_chive = Site(
+            name='TheCHIVE',
+            url='http://thechive.com/author/%s/',
+            status_code=200,
+            test_username_pos='macfaulkner'
+        )
+        session.add(the_chive)
 
         # Tribe.net was down when I was testing. I could not verify that these
         # settings work.
@@ -1044,6 +1197,14 @@ class DatabaseCli(cli.BaseCli):
         )
         session.add(tumblr)
 
+        twitch = Site(
+            name='Twitch',
+            url='https://www.twitch.tv/%s',
+            status_code=200,
+            test_username_pos='spritseason'
+        )
+        session.add(twitch)
+
         twitter = Site(
             name='Twitter',
             url='https://twitter.com/%s',
@@ -1051,6 +1212,31 @@ class DatabaseCli(cli.BaseCli):
             test_username_pos='mehaase'
         )
         session.add(twitter)
+
+        two_k_head = Site(
+            name='2KHead',
+            url='http://www.2khead.com/members/%s',
+            status_code=200,
+            test_username_pos='celahudini'
+        )
+        session.add(two_k_head)
+
+        uber_humour = Site(
+            name='Uber Humour',
+            url='http://uberhumor.com/author/%s',
+            status_code=200,
+            test_username_pos='robotnic'
+        )
+        session.add(uber_humour)
+
+        ultimate_guitar = Site(
+            name='Ultimate Guitar',
+            url='http://profile.ultimate-guitar.com/%s/',
+            match_type='text',
+            match_expr='profile views',
+            test_username_pos='toddyv'
+        )
+        session.add(ultimate_guitar)
 
         untappd = Site(
             name='Untappd',
@@ -1067,6 +1253,14 @@ class DatabaseCli(cli.BaseCli):
             test_username_pos='mikeolbinski'
         )
         session.add(vimeo)
+
+        vine = Site(
+            name='Vine',
+            url='https://vine.co/%s',
+            status_code=200,
+            test_username_pos='justinjrusso'
+        )
+        session.add(vine)
 
         visualize_us = Site(
             name='VisualizeUs',
@@ -1100,6 +1294,23 @@ class DatabaseCli(cli.BaseCli):
             test_username_pos='Weirdly_Sarcastic'
         )
         session.add(wattpad)
+
+        wee_world = Site(
+            name='WeeWorld',
+            url='http://www.weeworld.com/home/%s/',
+            match_type='text',
+            match_expr="'s Home",
+            test_username_pos='luukke'
+        )
+        session.add(wee_world)
+
+        we_heart_it = Site(
+            name='We Heart It',
+            url='http://weheartit.com/%s',
+            status_code=200,
+            test_username_pos='oliviatayler'
+        )
+        session.add(we_heart_it)
 
         wishlistr = Site(
             name='Wishlistr',
