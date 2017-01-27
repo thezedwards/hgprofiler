@@ -29,6 +29,7 @@ class ResultView(FlaskView):
                         "site_name": "Acme",
                         "site_url": "https://www.acme.com/%s",
                         "status": "Found",
+                        "html": "<html><head><title....",
                         "number": "5",
                         "total": "166",
                         "image_file_id": "1234"
@@ -96,6 +97,7 @@ class ResultView(FlaskView):
                         "site_name": "Acme",
                         "site_url": "https://www.acme.com/%s",
                         "status": "Found",
+                        "html": "<html><head><title....",
                         "number": "5",
                         "total": "166",
                         "image_file_id": "1234"

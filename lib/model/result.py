@@ -2,6 +2,7 @@ from sqlalchemy import (Column,
                         ForeignKey,
                         Integer,
                         String,
+                        Text,
                         UniqueConstraint)
 from sqlalchemy.orm import relationship
 from sqlalchemy_utils import ChoiceType
@@ -38,6 +39,7 @@ class Result(Base):
                               uselist=False,
                               cascade='all')
     error = Column(String(255), nullable=True)
+    html = Column(Text, nullable=True)
 
     def __init__(self,
                  tracker_id,
@@ -46,7 +48,8 @@ class Result(Base):
                  status,
                  image_file_id=None,
                  thumb=None,
-                 error=None):
+                 error=None,
+                 html=None):
         ''' Constructor. '''
 
         self.tracker_id = tracker_id
@@ -56,12 +59,14 @@ class Result(Base):
         self.image_file_id = image_file_id
         self.thumb = thumb
         self.error = error
+        self.html = html
 
     def as_dict(self):
         ''' Return dictionary representation of this result. '''
 
         return {
             'error': self.error,
+            'html': self.html,
             'id': self.id,
             'image_file_id': self.image_file_id,
             'image_file_url': self.image_file.url(),

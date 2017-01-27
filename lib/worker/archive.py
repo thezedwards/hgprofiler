@@ -21,7 +21,7 @@ def results_csv_string(results):
 
     data = []
     # Column headers
-    row = ['Site Name', 'Search Url', 'Status', 'Screenshot']
+    row = ['Site Name', 'Profile URL', 'Status', 'Screenshot', 'HTML']
     data.append(row)
 
     # In-memory csv
@@ -30,11 +30,18 @@ def results_csv_string(results):
 
     # Add results
     for result in results:
+
+        if result.status == 'f':
+            html_filename = '{}.html'.format(result.site_name.replace(' ', ''))
+        else:
+            html_filename = None
+
         data.append([
             result.site_name,
             result.site_url,
             result.status.value,
             result.image_file.name,
+            html_filename
         ])
 
     writer.writerows(data)
@@ -46,19 +53,23 @@ def create_zip(filename, results):
     '''
     Generate zip archive of results and return the file id.
 
-    Adds all images for results that have screenshots.
-    Adds csv result summary created on the fly (as IOString).
+    Adds screenshots and HTML for found results.
+    Adds csv result summary.
     '''
 
     db_session = worker.get_session()
     files = []
     str_files = []
 
-    # Create list of images
+    # Get images and HTML
     for result in results:
         if result.status == 'f':
-            # Add the name to results for the csv output
+            # Add the image file
             files.append((result.image_file.name, result.image_file.relpath()))
+            # Add the HTML as a string file
+            html_filename = '{}.html'.format(result.site_name.replace(' ', ''))
+            html_file = (html_filename, result.html)
+            str_files.append(html_file)
 
     # Generate in-memory results csv
     csv_string = results_csv_string(results)
