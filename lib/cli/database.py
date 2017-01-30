@@ -759,6 +759,8 @@ class DatabaseCli(cli.BaseCli):
             name='Metacritic',
             url='http://www.metacritic.com/user/%s',
             status_code=200,
+            match_type='css',
+            match_expr='div.user_summary',
             test_username_pos='tryasummersault'
         )
         session.add(metacritic)
@@ -801,6 +803,8 @@ class DatabaseCli(cli.BaseCli):
             name='Mouth Shut',
             url='http://www.mouthshut.com/%s',
             status_code=200,
+            match_type='css',
+            match_expr='h1.profileH1',
             test_username_pos='mhmdabrar'
         )
         session.add(mouth_shut)
@@ -1468,7 +1472,7 @@ class DatabaseCli(cli.BaseCli):
             'Snooth',
             'SoundCloud',
 
-        ],
+        ]
         review_sites = [
             'Metacritic',
             'Mouth Shut',
