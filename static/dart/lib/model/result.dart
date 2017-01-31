@@ -11,14 +11,20 @@ class Result {
     String status;
     int total;
     String error;
+    String username;
+    DateTime completed_at;
 
-    Result(String trackerId, String siteName, siteUrl, String status, int number, int total) {
+    Result(String trackerId, String siteName, String siteUrl,
+            String status, int number, int total, String username,
+            DateTime completed_at) {
         this.status = status;
         this.trackerId = trackerId;
         this.siteName = siteName;
         this.siteUrl = siteUrl;
         this.number = number;
         this.total = total;
+        this.username = username;
+        this.completed_at = completed_at;
     }
 
     Result.fromJson(Map json) {
@@ -32,5 +38,7 @@ class Result {
         this.number = json['number'];
         this.total = json['total'];
         this.error = json['error'];
+        this.username = json['username'];
+        this.completed_at = DateTime.parse(json['completed_at']);
     }
 }

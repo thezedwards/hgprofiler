@@ -97,12 +97,13 @@ def check_username(username, site_id, category_id, total,
     redis = worker.get_redis()
     db_session = worker.get_session()
 
-    # Make a splash request.
+    # Get site
     site = db_session.query(Site).get(site_id)
 
-    # Check site.
+    # Check site for username
     splash_result = _splash_username_request(username,
                                              site)
+    # Save image file
     image_file = _save_image(db_session, splash_result)
 
     # Save result to DB.
@@ -112,6 +113,7 @@ def check_username(username, site_id, category_id, total,
         site_url=splash_result['url'],
         status=splash_result['status'],
         image_file_id=image_file.id,
+        username=username,
         error=splash_result['error']
     )
 
@@ -150,8 +152,13 @@ def splash_request(target_url, headers={}, request_timeout=None):
                              required=True).value
 
     if request_timeout is None:
-        request_timeout = get_config(db_session, 'splash_request_timeout',
-                                     required=True).value
+        try:
+            request_timeout = int(get_config(db_session,
+                                             'splash_request_timeout',
+                                             required=True).value)
+        except:
+            raise ScrapeException('Request timeout must be an integer: {}',
+                                  request_timeout)
 
     auth = (splash_user, splash_pass)
     splash_headers = {'content-type': 'application/json'}
