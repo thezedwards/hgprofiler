@@ -134,7 +134,7 @@ class File(Base):
         '''
         Return API relative URL for file.
         '''
-        return '/api/file/{}'.format(self.id)
+        return '/api/files/{}'.format(self.id)
 
     def as_dict(self):
         ''' Return dictionary representation of this file. '''
@@ -144,5 +144,5 @@ class File(Base):
             'name': self.name,
             'mime': self.mime,
             'path': self.relpath(),
-            'url': '/api/file/{}'.format(self.id)
+            'url': '/api/files/{}'.format(self.id)
         }

@@ -70,7 +70,7 @@ class ArchiveComponent extends Object {
     void _fetchCurrentPage() {
         this.error = null;
         this.loading++;
-        String pageUrl = '/api/archive/';
+        String pageUrl = '/api/archives/';
         Map urlArgs = {
             'page': this._queryWatcher['page'] ?? '1',
             'rpp': this._queryWatcher['rpp'] ?? '10',
@@ -128,7 +128,7 @@ class ArchiveComponent extends Object {
 
     /// Delete archive specified by deleteArchiveId.
     void deleteArchive(Event e, dynamic data, Function resetButton) {
-        String pageUrl = '/api/archive/${this.deleteArchiveId}';
+        String pageUrl = '/api/archives/${this.deleteArchiveId}';
         this.loading++;
         String name = this.archives[deleteArchiveId].username;
 

@@ -125,7 +125,7 @@ class CategoryListComponent extends Object
     Future _fetchCurrentPage() {
         Completer completer = new Completer();
         this.loading++;
-        String pageUrl = '/api/category/';
+        String pageUrl = '/api/categories/';
         Map urlArgs = {
             'page': this._queryWatcher['page'] ?? '1',
             'rpp': this._queryWatcher['rpp'] ?? '100',
@@ -182,7 +182,7 @@ class CategoryListComponent extends Object
         }
 
 
-        String pageUrl = '/api/category/${this.editCategoryId}';
+        String pageUrl = '/api/categories/${this.editCategoryId}';
         this.loading++;
 
         Map body = {
@@ -221,7 +221,7 @@ class CategoryListComponent extends Object
             return;
         }
 
-        String pageUrl = '/api/category/${this.deleteCategoryId}';
+        String pageUrl = '/api/categories/${this.deleteCategoryId}';
         String name = this.categories[deleteCategoryId]['name'];
         this.loading++;
         Map body = {};
@@ -297,7 +297,7 @@ class CategoryListComponent extends Object
     void addCategory(Event e, dynamic data, Function resetButton) {
         List<int> sites = new List();
         this.siteSearch = '';
-        String pageUrl = '/api/category/';
+        String pageUrl = '/api/categories/';
         this.loading++;
 
         // Validate input
@@ -347,7 +347,7 @@ class CategoryListComponent extends Object
     Future _fetchPageOfSites(int index) {
         Completer completer = new Completer();
         this.loading++;
-        String siteUrl = '/api/site/';
+        String siteUrl = '/api/sites/';
         Map urlArgs = {
             'page': index,
             'rpp': 100,
@@ -384,7 +384,7 @@ class CategoryListComponent extends Object
         bool finished = false;
         int page = 1;
         this.sites = new List();
-        String siteUrl = '/api/site/';
+        String siteUrl = '/api/sites/';
         int totalCount = 0;
         this._fetchPageOfSites(page)
             .then((_) {
