@@ -58,7 +58,7 @@ class UserListComponent extends Object{
         };
 
         this._api
-            .post('/api/user/', body, needsAuth: true)
+            .post('/api/users/', body, needsAuth: true)
             .then((response) {
                 Modal.wire($("#add-user-modal")).hide();
                 this._router.go('user_view', {'id': response.data['id']});
@@ -80,7 +80,7 @@ class UserListComponent extends Object{
     void _fetchCurrentPage() {
         this.error = null;
         this.loading = true;
-        String pageUrl = '/api/user/';
+        String pageUrl = '/api/users/';
         Map urlArgs = {
             'page': this._queryWatcher['page'] ?? '1',
             'rpp': this._queryWatcher['rpp'] ?? '10'

@@ -262,7 +262,7 @@ class SiteComponent extends Object
     /// Fetch a page of profiler sites.
     void _fetchCurrentPage() {
         this.loading++;
-        String pageUrl = '/api/site/';
+        String pageUrl = '/api/sites/';
         Map urlArgs = {
             'page': this._queryWatcher['page'] ?? '1',
             'rpp': this._queryWatcher['rpp'] ?? '10',
@@ -298,7 +298,7 @@ class SiteComponent extends Object
     // Fetch list of map of match types.
     void _fetchMatchTypes() {
         this.loading++;
-        String url = '/api/site/match-types';
+        String url = '/api/sites/match-types';
         this.matchTypes = new Map<String,String>();
         this.matchTypesList = new List<List<String>>();
 
@@ -374,7 +374,7 @@ class SiteComponent extends Object
 
     /// Submit a new site.
     void addSite(Event e, dynamic data, Function resetButton) {
-        String pageUrl = '/api/site/';
+        String pageUrl = '/api/sites/';
         this.siteError = null;
         this.submittingSite = true;
         this.loading++;
@@ -471,7 +471,7 @@ class SiteComponent extends Object
 
     /// Save an edited site.
     void saveSite(Event e, dynamic data, Function resetButton) {
-        String pageUrl = '/api/site/${this.editSiteId}';
+        String pageUrl = '/api/sites/${this.editSiteId}';
         this.loading++;
         this.submittingSite = true;
         this._setNewSiteHeaders();
@@ -518,7 +518,7 @@ class SiteComponent extends Object
 
     /// Save an edited site.
     void saveAndTestSite(Event e, dynamic data, Function resetButton) {
-        String pageUrl = '/api/site/${this.editSiteId}';
+        String pageUrl = '/api/sites/${this.editSiteId}';
         this.loading++;
         this.submittingSite = true;
         this._setNewSiteHeaders();
@@ -576,7 +576,7 @@ class SiteComponent extends Object
     /// Request test of siteId.
     void testSite(int siteId) {
         this.result = null;
-        String pageUrl = '/api/site/${siteId}/job';
+        String pageUrl = '/api/sites/${siteId}/job';
         Map job = {'name': 'test'};
 
         Map urlArgs = {
@@ -599,7 +599,7 @@ class SiteComponent extends Object
     /// Request test of all sites.
     void testAllSites() {
         this.result = null;
-        String pageUrl = '/api/site/job/';
+        String pageUrl = '/api/sites/job/';
         Map job = {'name': 'test'};
 
         Map urlArgs = {
@@ -625,7 +625,7 @@ class SiteComponent extends Object
         if(this.deleteSiteId == null) {
             return;
         }
-        String pageUrl = '/api/site/${this.deleteSiteId}';
+        String pageUrl = '/api/sites/${this.deleteSiteId}';
         String name = this.sites[deleteSiteId].name;
         this.loading++;
 
