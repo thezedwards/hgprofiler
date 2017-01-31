@@ -1,7 +1,10 @@
+from datetime import datetime
 from sqlalchemy import (Column,
+                        DateTime,
                         ForeignKey,
                         Integer,
                         String,
+                        Text,
                         UniqueConstraint)
 from sqlalchemy.orm import relationship
 from sqlalchemy_utils import ChoiceType
@@ -38,15 +41,20 @@ class Result(Base):
                               uselist=False,
                               cascade='all')
     error = Column(String(255), nullable=True)
+    html = Column(Text, nullable=True)
+    username = Column(String(255), nullable=False)
+    completed_at = Column(DateTime, nullable=False, default=datetime.utcnow)
 
     def __init__(self,
                  tracker_id,
                  site_name,
                  site_url,
                  status,
+                 username,
                  image_file_id=None,
                  thumb=None,
-                 error=None):
+                 error=None,
+                 html=None):
         ''' Constructor. '''
 
         self.tracker_id = tracker_id
@@ -56,12 +64,16 @@ class Result(Base):
         self.image_file_id = image_file_id
         self.thumb = thumb
         self.error = error
+        self.html = html
+        self.username = username
 
     def as_dict(self):
         ''' Return dictionary representation of this result. '''
 
         return {
+            'completed_at': self.completed_at.isoformat(),
             'error': self.error,
+            'html': self.html,
             'id': self.id,
             'image_file_id': self.image_file_id,
             'image_file_url': self.image_file.url(),
@@ -70,4 +82,5 @@ class Result(Base):
             'site_url': self.site_url,
             'status': self.status.code,
             'tracker_id': self.tracker_id,
+            'username': self.username,
         }

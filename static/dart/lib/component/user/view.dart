@@ -75,7 +75,7 @@ class UserComponent {
 
         this.loading++;
         this._api
-            .put('/api/user/' + this.id.toString(), body, needsAuth: true)
+            .put('/api/users/' + this.id.toString(), body, needsAuth: true)
             .then((response) {
                 this.error = null;
                 this.message = 'User profile updated.';
@@ -149,7 +149,7 @@ class UserComponent {
         this.loading++;
 
         this._api
-            .get('/api/user/${this.id}', needsAuth: true)
+            .get('/api/users/${this.id}', needsAuth: true)
             .then((response) {
                 this.user = new User.fromJson(response.data);
 

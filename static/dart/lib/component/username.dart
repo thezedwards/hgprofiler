@@ -172,7 +172,7 @@ class UsernameComponent implements ShadowRootAware {
     Future _fetchPageOfCategories(page) {
         Completer completer = new Completer();
         this.loading++;
-        String categoryUrl = '/api/category/';
+        String categoryUrl = '/api/categories/';
         Map urlArgs = {
             'page': page,
             'rpp': 100,

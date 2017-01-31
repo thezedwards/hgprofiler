@@ -97,12 +97,13 @@ def check_username(username, site_id, category_id, total,
     redis = worker.get_redis()
     db_session = worker.get_session()
 
-    # Make a splash request.
+    # Get site
     site = db_session.query(Site).get(site_id)
 
-    # Check site.
+    # Check site for username
     splash_result = _splash_username_request(username,
                                              site)
+    # Save image file
     image_file = _save_image(db_session, splash_result)
 
     # Save result to DB.
@@ -112,8 +113,13 @@ def check_username(username, site_id, category_id, total,
         site_url=splash_result['url'],
         status=splash_result['status'],
         image_file_id=image_file.id,
+        username=username,
         error=splash_result['error']
     )
+
+    if result.status == 'f':
+        result.html = splash_result['html']
+
     db_session.add(result)
     db_session.commit()
 
@@ -146,8 +152,13 @@ def splash_request(target_url, headers={}, request_timeout=None):
                              required=True).value
 
     if request_timeout is None:
-        request_timeout = get_config(db_session, 'splash_request_timeout',
-                                     required=True).value
+        try:
+            request_timeout = int(get_config(db_session,
+                                             'splash_request_timeout',
+                                             required=True).value)
+        except:
+            raise ScrapeException('Request timeout must be an integer: {}',
+                                  request_timeout)
 
     auth = (splash_user, splash_pass)
     splash_headers = {'content-type': 'application/json'}
@@ -215,6 +226,7 @@ def _splash_username_request(username, site):
             result['status'] = 'n'
 
         result['image'] = splash_data['jpeg']
+        result['html'] = splash_data['html']
     except Exception as e:
         result['status'] = 'e'
         result['error'] = str(e)
@@ -257,7 +269,8 @@ def _check_splash_response(site, splash_response, splash_data):
 def _save_image(db_session, scrape_result):
     """ Save the image returned by Splash to a local file. """
     if scrape_result['error'] is None:
-        image_name = '{}.jpg'.format(scrape_result['site']['name'])
+        image_name = '{}.jpg'.format(scrape_result['site']['name']
+                                     .replace(' ', ''))
         content = base64.decodestring(scrape_result['image'].encode('utf8'))
         image_file = File(name=image_name,
                           mime='image/jpeg',

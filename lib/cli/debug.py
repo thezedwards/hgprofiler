@@ -103,6 +103,7 @@ class DebugCli(cli.BaseCli):
                                      indent=4,
                                      sort_keys=True)
             except:
+                print('Request failed entering python debugger..')
                 import pdb
                 pdb.set_trace()
 

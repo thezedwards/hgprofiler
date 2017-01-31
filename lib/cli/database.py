@@ -681,7 +681,7 @@ class DatabaseCli(cli.BaseCli):
         session.add(last_fm)
 
         lava_place = Site(
-            name='Lave Place',
+            name='Lava Place',
             url='https://www.lavaplace.com/%s/',
             status_code=200,
             test_username_pos='vildai'
@@ -759,6 +759,8 @@ class DatabaseCli(cli.BaseCli):
             name='Metacritic',
             url='http://www.metacritic.com/user/%s',
             status_code=200,
+            match_type='css',
+            match_expr='div.user_summary',
             test_username_pos='tryasummersault'
         )
         session.add(metacritic)
@@ -801,6 +803,8 @@ class DatabaseCli(cli.BaseCli):
             name='Mouth Shut',
             url='http://www.mouthshut.com/%s',
             status_code=200,
+            match_type='css',
+            match_expr='h1.profileH1',
             test_username_pos='mhmdabrar'
         )
         session.add(mouth_shut)
@@ -1376,33 +1380,45 @@ class DatabaseCli(cli.BaseCli):
             'Keybase',
         ]
         dating_sites = [
+            '420 Singles',
             'Badoo',
+            'Connecting Singles',
             'FriendFinder-X',
             'GETitOn',
             'Law of Attraction',
+            'Lava Place'
             'Mate1.com',
             'OkCupid',
             'SingleMuslim',
         ]
         hobby_and_interest_sites = [
+            '2KHead',
             'Anobii',
             'Authorstream',
             'Car Domain',
             'Colour Lovers',
+            'Covers',
             'DIY',
             'Goodreads',
             'Fanpop',
             'Foodspotting',
+            'Gamespot',
+            'IGN',
             'Kongregate',
             'Lifeboat',
             'Mod DB',
             'Muck Rack',
+            'Operation Sports',
             'Pinkbike',
+            'Pregame',
             'Readability',
+            'Rockclimbing',
+            'Rotogrinders',
             'SmiteGuru',
             'Sporcle',
             'Steam',
             'Untappd',
+            'Ultimate Guitar',
             'Xbox Gamertag',
         ]
         health_and_lifestyle_sites = [
@@ -1410,6 +1426,16 @@ class DatabaseCli(cli.BaseCli):
             'Families',
             'i-am-pregnant',
             'Stupidcancer',
+        ]
+        humour_sites = [
+            'Break',
+            'Cheezeburger',
+            'Cracked',
+            'Dailymotion',
+            'Funny or Die',
+            'Funny Junk',
+            'TheChive',
+            'Uber Humour',
         ]
         image_sites = [
             'DeviantArt',
@@ -1447,7 +1473,12 @@ class DatabaseCli(cli.BaseCli):
             'SoundCloud',
 
         ]
+        review_sites = [
+            'Metacritic',
+            'Mouth Shut',
+        ]
         shopping_sites = [
+            'Bonanza',
             'Ebay',
             'Etsy',
             'Shopcade',
@@ -1478,12 +1509,16 @@ class DatabaseCli(cli.BaseCli):
             'Reddit',
             'Scratch',
             'Soup',
+            'StumbleUpon',
             'Tribe',
             'Tumblr',
             'Twitter',
+            'Vine',
             'VisualizeUs',
             'Wanelo',
             'Wattpad',
+            'WeeWorld',
+            'We Heart It',
             'Wishlistr'
         ]
         technology_sites = [
@@ -1498,10 +1533,8 @@ class DatabaseCli(cli.BaseCli):
             'Gogobot',
         ]
         video_sites = [
-            'Break',
-            'Dailymotion',
-            'Funny or Die',
             'GodTube',
+            'Twitch',
             'Vimeo',
             'YouTube',
         ]
@@ -1578,6 +1611,16 @@ class DatabaseCli(cli.BaseCli):
         )
         session.add(hobby_and_interest)
 
+        # Humour
+        sites = session.query(Site) \
+                       .filter(Site.name.in_(humour_sites)) \
+                       .all()
+        humour = Category(
+            name='Humour',
+            sites=sites
+        )
+        session.add(humour)
+
         # Image
         sites = session.query(Site) \
                        .filter(Site.name.in_(image_sites)) \
@@ -1607,6 +1650,16 @@ class DatabaseCli(cli.BaseCli):
             sites=sites
         )
         session.add(music)
+
+        # Reviews and Ratings
+        sites = session.query(Site) \
+                       .filter(Site.name.in_(review_sites)) \
+                       .all()
+        reviews = Category(
+            name='Reviews and Ratings',
+            sites=sites
+        )
+        session.add(reviews)
 
         # Shopping
         sites = session.query(Site) \

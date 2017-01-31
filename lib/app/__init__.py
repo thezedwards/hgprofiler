@@ -250,32 +250,32 @@ def init_views(flask_app, config):
     ProxiesView.register(flask_app, route_base='/api/proxies/')
 
     from app.views.file import FileView
-    FileView.register(flask_app, route_base='/api/file/')
+    FileView.register(flask_app, route_base='/api/files/')
 
     from app.views.notification import NotificationView
     NotificationView.register(flask_app, route_base='/api/notification/')
     flask_app.atexit(NotificationView.quit_notifications)
 
     from app.views.site import SiteView
-    SiteView.register(flask_app, route_base='/api/site/')
+    SiteView.register(flask_app, route_base='/api/sites/')
 
     from app.views.tasks import TasksView
     TasksView.register(flask_app, route_base='/api/tasks/')
 
     from app.views.user import UserView
-    UserView.register(flask_app, route_base='/api/user/')
+    UserView.register(flask_app, route_base='/api/users/')
 
     from app.views.username import UsernameView
     UsernameView.register(flask_app, route_base='/api/username/')
 
     from app.views.category import CategoryView
-    CategoryView.register(flask_app, route_base='/api/category/')
+    CategoryView.register(flask_app, route_base='/api/categories/')
 
     from app.views.archive import ArchiveView
-    ArchiveView.register(flask_app, route_base='/api/archive/')
+    ArchiveView.register(flask_app, route_base='/api/archives/')
 
     from app.views.result import ResultView
-    ResultView.register(flask_app, route_base='/api/result/')
+    ResultView.register(flask_app, route_base='/api/results/')
 
     # Make sure to import the Angular view last so that it will match
     # all remaining routes.

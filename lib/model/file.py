@@ -3,7 +3,6 @@ import binascii
 import hashlib
 import os
 import zipfile
-import string
 
 from sqlalchemy import Column, Integer, String
 from sqlalchemy.dialects.postgresql import BYTEA
@@ -22,8 +21,8 @@ class File(Base):
     stored in
     data/e/3/b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855.
 
-    Zip archives can be created by setting zip_archive=True and passing a list of file tuples
-    and/or str_files tuples:
+    Zip archives can be created by setting zip_archive=True and passing
+    a list of file tuples and/or str_files tuples:
 
     zip_files = [
         ('filename.jpg','path/to/file')
@@ -33,7 +32,8 @@ class File(Base):
         ('filename.csv','some,juicy,content')
     ]
 
-    zip_str_files are created in-memory using StringIO and written as zipfile.ZipInfo.
+    zip_str_files are created in-memory using StringIO
+    and written as zipfile.ZipInfo.
     '''
 
     __tablename__ = 'file'
@@ -57,7 +57,8 @@ class File(Base):
         self.name = name
         self.mime = mime
 
-        # Create dummy content to use in hash if there is no content (zip archives)
+        # Create dummy content to use in hash if there is
+        # no content (zip archives)
         if content is None:
             content = ('DUMMY DATA - {}' + random_string(1000)).encode('utf8')
 
@@ -107,7 +108,9 @@ class File(Base):
         # Add files
         for f in files:
             f_path = os.path.join(data_dir, f[1])
-            zip_file.write(f_path, arcname=f[0], compress_type=zipfile.ZIP_DEFLATED)
+            zip_file.write(f_path,
+                           arcname=f[0],
+                           compress_type=zipfile.ZIP_DEFLATED)
 
         # Write string files
         for str_file in str_files:
@@ -115,7 +118,7 @@ class File(Base):
             info.date_time = time.localtime(time.time())[:6]
             info.compress_type = zipfile.ZIP_DEFLATED
             # http://stackoverflow.com/questions/434641/how-do-i-set-permissions-attributes-on-a-file-in-a-zip-file-using-pythons-zip/6297838#6297838
-            info.external_attr = 0o644 << 16 # rw-r-r
+            info.external_attr = 0o644 << 16  # rw-r-r
             zip_file.writestr(info, str_file[1])
 
         zip_file.close()
@@ -131,8 +134,7 @@ class File(Base):
         '''
         Return API relative URL for file.
         '''
-        return '/api/file/{}'.format(self.id)
-
+        return '/api/files/{}'.format(self.id)
 
     def as_dict(self):
         ''' Return dictionary representation of this file. '''
@@ -142,5 +144,5 @@ class File(Base):
             'name': self.name,
             'mime': self.mime,
             'path': self.relpath(),
-            'url': '/api/file/{}'.format(self.id)
+            'url': '/api/files/{}'.format(self.id)
         }
