@@ -1,4 +1,6 @@
+from datetime import datetime
 from sqlalchemy import (Column,
+                        DateTime,
                         ForeignKey,
                         Integer,
                         String,
@@ -40,12 +42,15 @@ class Result(Base):
                               cascade='all')
     error = Column(String(255), nullable=True)
     html = Column(Text, nullable=True)
+    username = Column(String(255), nullable=False)
+    completed_at = Column(DateTime, nullable=False, default=datetime.utcnow)
 
     def __init__(self,
                  tracker_id,
                  site_name,
                  site_url,
                  status,
+                 username,
                  image_file_id=None,
                  thumb=None,
                  error=None,
@@ -60,11 +65,13 @@ class Result(Base):
         self.thumb = thumb
         self.error = error
         self.html = html
+        self.username = username
 
     def as_dict(self):
         ''' Return dictionary representation of this result. '''
 
         return {
+            'completed_at': self.completed_at.isoformat(),
             'error': self.error,
             'html': self.html,
             'id': self.id,
@@ -75,4 +82,5 @@ class Result(Base):
             'site_url': self.site_url,
             'status': self.status.code,
             'tracker_id': self.tracker_id,
+            'username': self.username,
         }
