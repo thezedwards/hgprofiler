@@ -173,6 +173,10 @@ def splash_request(target_url, headers={}, request_timeout=None):
         'jpeg': 1,
         'har': 1,
         'history': 1,
+        'wait': 1,
+        'render_all': 1,
+        'width': 1024,
+        'height': 768,
         'timeout': request_timeout,
         'resource_timeout': 5,
         'headers': headers
