@@ -360,7 +360,7 @@ class DatabaseCli(cli.BaseCli):
             name='Diigo',
             url='https://www.diigo.com/profile/%s',
             match_type='css',
-            match_expr='div#avatarSection',
+            match_expr='div.username',
             test_username_pos='hunter53'
         )
         session.add(diigo)
@@ -524,6 +524,16 @@ class DatabaseCli(cli.BaseCli):
         )
         session.add(gamespot)
 
+        garmin_connect = Site(
+            name='Garmin Connect',
+            url='http://connect.garmin.com/modern/profile/%s',
+            status_code=200,
+            match_type='css',
+            match_expr='div#infos-user',
+            test_username_pos='sally'
+        )
+        session.add(garmin_connect)
+
         get_it_on = Site(
             name='GETitOn',
             url='http://getiton.com/profile/%s',
@@ -585,7 +595,7 @@ class DatabaseCli(cli.BaseCli):
             name='i-am-pregnant',
             url='http://www.i-am-pregnant.com/members/%s/',
             status_code=200,
-            test_username_pos='shiv77'
+            test_username_pos='timothyimmek'
         )
         session.add(i_am_pregnant)
 
@@ -619,7 +629,7 @@ class DatabaseCli(cli.BaseCli):
             name='Imgur',
             url='http://imgur.com/user/%s',
             status_code=200,
-            test_username_pos='ThatPervert'
+            test_username_pos='Alrayani'
         )
         session.add(imgur)
 
@@ -706,14 +716,6 @@ class DatabaseCli(cli.BaseCli):
         )
         session.add(library_thing)
 
-        lifeboat = Site(
-            name='Lifeboat',
-            url='https://oc.tc/%s',
-            status_code=200,
-            test_username_pos='Matilaina'
-        )
-        session.add(lifeboat)
-
         linked_in = Site(
             name='LinkedIn',
             url='https://www.linkedin.com/in/%s',
@@ -759,8 +761,8 @@ class DatabaseCli(cli.BaseCli):
             name='Metacritic',
             url='http://www.metacritic.com/user/%s',
             status_code=200,
-            match_type='css',
-            match_expr='div.user_summary',
+            match_type='text',
+            match_expr='My Scores',
             test_username_pos='tryasummersault'
         )
         session.add(metacritic)
@@ -772,16 +774,6 @@ class DatabaseCli(cli.BaseCli):
             test_username_pos='dublab'
         )
         session.add(mixcloud)
-
-        # This site was out of service at the time I tried testing it, so I
-        # could not test this criteria.
-        mixcrate = Site(
-            name='Mixcrate',
-            url='http://www.mixcrate.com/%s',
-            status_code=200,
-            test_username_pos='kennyrock'
-        )
-        session.add(mixcrate)
 
         mixlr = Site(
             name='Mixlr',
@@ -855,7 +847,7 @@ class DatabaseCli(cli.BaseCli):
             status_code=200,
             match_type='xpath',
             match_expr="//div[contains(@class, 'info-username')]",
-            test_username_pos='the_ferett'
+            test_username_pos='the_ferrett'
         )
         session.add(okcupid)
 
@@ -958,14 +950,6 @@ class DatabaseCli(cli.BaseCli):
             test_username_pos='silvioporto'
         )
         session.add(rate_your_music)
-
-        readability = Site(
-            name='Readability',
-            url='https://readability.com/%s/',
-            status_code=200,
-            test_username_pos='adam'
-        )
-        session.add(readability)
 
         reddit = Site(
             name='Reddit',
@@ -1424,6 +1408,7 @@ class DatabaseCli(cli.BaseCli):
         health_and_lifestyle_sites = [
             'Bodybuilding',
             'Families',
+            'Garmin Connect',
             'i-am-pregnant',
             'Stupidcancer',
         ]
