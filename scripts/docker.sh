@@ -8,6 +8,7 @@ BOLD="\033[1m"
 
 # Script variables
 APP_CONTAINER="profiler_app"
+REDIS_CONTAINER="profiler_redis"
 APP_USER="hgprofiler"
 PUB_CACHE="/pub-cache"
 
@@ -20,7 +21,7 @@ log() {
 
 # Echo statement in red.
 error() {
-  echo "" 
+  echo ""
   echo -e "$RED >>> ERROR - $1$NORMAL"
 }
 
@@ -43,9 +44,14 @@ db() {
 }
 
 
-# Restart supervisor applications.
+# Execute supervisor command.
 supervisorctl() {
-  docker exec ${APP_CONTAINER} supervisorctl "$@" 
+  docker exec ${APP_CONTAINER} supervisorctl "$@"
+}
+
+# Execute redis commmands.
+redis() {
+  docker exec ${REDIS_CONTAINER} redis-cli "$@"
 }
 
 
@@ -88,6 +94,7 @@ help() {
   echo -e "   $BOLD serve $NORMAL- Run Flask dev server in debug mode"
   echo -e "   $BOLD shell $NORMAL- Open shell in profiler container"
   echo -e "   $BOLD supervisorctl $NORMAL- Execute supervisorctl command, e.g. 'restart all'"
+  echo -e "   $BOLD redis $NORMAL- Execute redis-cli command, e.g. 'flushall'"
   echo -e "   $BOLD tail $NORMAL- Tail logs, e.g. 'supervisor/*', 'supervisor/scrape*stderr*'"
   echo "-----------------------------------------------------------------------"
 }
