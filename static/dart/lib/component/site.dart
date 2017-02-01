@@ -50,6 +50,9 @@ class SiteComponent extends Object
     List<String>  siteHeaderKeys = new List<String>();
     Map<String, String> siteHeaders = new Map<String, String>();
     Map<String, String> newSiteHeaders = new Map<String, String>();
+    int newSiteWaitTime;
+    bool newSiteCensorImages;
+    bool newSiteUseProxy;
     Pager pager;
     Result result;
     String query;
@@ -129,6 +132,9 @@ class SiteComponent extends Object
             this.editSiteId = null;
             this.siteHeaderKeys = new List<String>();
             this.siteHeaders = new Map<String, String>();
+            this.newSiteWaitTime = 1;
+            this.newSiteCensorImages = false;
+            this.newSiteUseProxy = false;
         }
         this.showAddEdit = true;
         this.siteError = null;
@@ -232,6 +238,9 @@ class SiteComponent extends Object
             this.siteHeaderKeys.add(key);
             this.siteHeaders[key] = value;
         });
+        this.newSiteWaitTime = this.sites[id_].waitTime;
+        this.newSiteCensorImages = this.sites[id_].censorImages;
+        this.newSiteUseProxy = this.sites[id_].useProxy;
 
         this.newSiteUrl = this.sites[id_].url;
         this.editSiteId = id_;
@@ -398,6 +407,9 @@ class SiteComponent extends Object
             'test_username_pos': this.newSiteTestUsernamePos,
             'test_username_neg': this.newSiteTestUsernameNeg,
             'headers': this.newSiteHeaders,
+            'wait_time': this.newSiteWaitTime,
+            'censor_images': this.newSiteCensorImages,
+            'use_proxy': this.newSiteUseProxy,
         };
 
         Map body = {
@@ -494,6 +506,9 @@ class SiteComponent extends Object
             'test_username_pos': this.newSiteTestUsernamePos,
             'test_username_neg': this.newSiteTestUsernameNeg,
             'headers': this.newSiteHeaders,
+            'wait_time': this.newSiteWaitTime,
+            'censor_images': this.newSiteCensorImages,
+            'use_proxy': this.newSiteUseProxy,
         };
 
         this.api
@@ -541,6 +556,9 @@ class SiteComponent extends Object
             'test_username_pos': this.newSiteTestUsernamePos,
             'test_username_neg': this.newSiteTestUsernameNeg,
             'headers': this.newSiteHeaders,
+            'wait_time': this.newSiteWaitTime,
+            'censor_images': this.newSiteCensorImages,
+            'use_proxy': this.newSiteUseProxy,
         };
 
         this.api

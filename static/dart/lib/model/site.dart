@@ -16,13 +16,17 @@ class Site {
     DateTime testedAt;
     bool valid;
     Map headers;
+    bool censorImages;
+    int waitTime;
+    bool useProxy;
 
     // Errors related to creating or loading this site.
     String error;
 
     Site(String name, String url,
          int statusCode, String matchType, String matchExpr,
-         String testUsernamePos, Map headers) {
+         String testUsernamePos, Map headers, bool censorImages,
+         int waitTime, bool useProxy) {
 
         this.name = name;
         this.url = url;
@@ -31,6 +35,9 @@ class Site {
         this.matchExpr = matchExpr;
 	    this.testUsernamePos = testUsernamePos;
         this.headers = headers;
+        this.censorImages = censorImages;
+        this.waitTime = waitTime;
+        this.useProxy = useProxy;
     }
 
     Site.fromJson(Map json) {
@@ -60,5 +67,8 @@ class Site {
 	    this.valid = json['valid'];
 	    this.testedAt = json['tested_at'];
         this.headers = json['headers'];
+        this.censorImages = json['censor_images'];
+        this.waitTime = json['wait_time'];
+        this.useProxy = json['use_proxy'];
     }
 }

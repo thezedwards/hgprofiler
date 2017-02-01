@@ -28,8 +28,8 @@
             <form class='form-horizontal add-site-form'>
 
               <div class='form-group'>
-                <label class="col-sm-2" for='site-name'>Name*</label>
-                <div class="col-sm-10">
+                <label class="col-sm-3" for='site-name'>Name*</label>
+                <div class="col-sm-9">
                   <input type='text'
                          class='form-control'
                          id='site-name'
@@ -41,8 +41,8 @@
               </div>
 
               <div class='form-group'>
-                <label for="url" class='col-sm-2'>URL*</label>
-                <div class="col-sm-10">
+                <label for="url" class='col-sm-3'>URL*</label>
+                <div class="col-sm-9">
                   <input type='text'
                          class='form-control' id="url"
                          size='50'
@@ -54,8 +54,8 @@
               </div>
 
               <div class='form-group'>
-                <label class='col-sm-2' for="status-code">Status code</label>
-                <div class="col-sm-10">
+                <label class='col-sm-3' for="status-code">Status code</label>
+                <div class="col-sm-9">
                   <input type='text'
                          class='form-control'
                          id="status-code"
@@ -68,7 +68,7 @@
               </div>
 
               <div class='form-group'>
-                <label class='col-sm-2' for="match-expr">Page match</label>
+                <label class='col-sm-3' for="match-expr">Page match</label>
                 <div class="col-sm-4">
                   <button type='button'
                           class='btn btn-default dropdown-toggle'
@@ -83,7 +83,7 @@
                     <li ng-repeat="matchType in matchTypesList"><a ng-click='setSiteMatchType(matchType[0])'>{{matchType[1]}}</a></li>
                   </ul>
                 </div>
-                <div class='col-sm-6'>
+                <div class='col-sm-5'>
                     <input type='text'
                            class='form-control'
                            id="match-expr"
@@ -91,13 +91,13 @@
                            ng-model='newSiteMatchExpr'
                            ng-keypress='handleAddSiteKeypress($event)'
                            ng-disabled='submittingSite'
-                           placeholder='Expression to match page contents.'>
+                           placeholder='Expression to match.'>
                 </div>
               </div>
 
               <div class='form-group'>
-                <label class='col-sm-2' for="test-username-pos">Test Username (pos)*</label>
-                <div class="col-sm-10">
+                <label class='col-sm-3' for="test-username-pos">Test username (pos)*</label>
+                <div class="col-sm-9">
                   <input type='text'
                          class='form-control'
                          id="test-username-pos"
@@ -110,8 +110,8 @@
               </div>
 
               <div class='form-group'>
-                <label class='col-sm-2' for="test-username-neg">Test Username (neg)*</label>
-                <div class="col-sm-10">
+                <label class='col-sm-3' for="test-username-neg">Test username (neg)*</label>
+                <div class="col-sm-9">
                   <input type='text'
                          class='form-control'
                          id="test-username-neg"
@@ -123,8 +123,67 @@
                 </div>
               </div>
 
+              <div class='form-group'>
+                <label class='col-sm-3' for="wait-time">Wait time (1 - 10 seconds)*</label>
+                <div class="col-sm-9">
+                  <input type='number'
+                         class='form-control'
+                         id="wait-time"
+                         min="1"
+                         max="10"
+                         size='30'
+                         ng-model='newSiteWaitTime'
+                         ng-keypress='handleAddSiteKeypress($event)'
+                         ng-disabled='submittingSite'>
+                </div>
+              </div>
+
+              <div class='form-group'>
+                <label class='col-sm-3' for="censor-images">
+                  Censor images
+                </label>
+                <div class="col-sm-9">
+
+                  <div class="material-switch">
+                    <input id="censor-images"
+                           type="checkbox"
+                           ng-model='newSiteCensorImages'
+                           ng-show='newSiteCensorImages == true'
+                           checked />
+                    <input id="censor-images"
+                           type="checkbox"
+                           ng-show='newSiteCensorImages == false'
+                           ng-model='newSiteCensorImages'/>
+                    <label for="censor-images" class="label-success"></label>
+                  </div>
+                </div>
+
+              </div>
+
+              <div class='form-group'>
+                <label class='col-sm-3' for="use-proxy">
+                  Use proxy (if available)
+                </label>
+                <div class="col-sm-9">
+
+                  <div class="material-switch">
+                    <input id="use-proxy"
+                           type="checkbox"
+                           ng-model='newSiteUseProxy'
+                           ng-show='newSiteUseProxy == true'
+                           checked />
+                    <input id="use-proxy"
+                           type="checkbox"
+                           ng-show='newSiteUseProxy == false'
+                           ng-model='newSiteUseProxy'/>
+                    <label for="use-proxy" class="label-success"></label>
+                  </div>
+                </div>
+
+              </div>
+
               <div class='form-group custom-header' ng-repeat="key in siteHeaderKeys">
-                <div class='col-sm-2'><strong>Custom Header</strong></div>
+                <div class='col-sm-3'><strong>Custom Header</strong></div>
                 <div class="col-sm-3">
                   <label for="custom-header-name-$index">Name*</label>
                   <input type='text'
@@ -135,7 +194,7 @@
                          ng-disabled='submittingSite'
                          placeholder='Enter header name.'>
                 </div>
-                <div class="col-sm-5">
+                <div class="col-sm-4">
                   <label for="custom-header-value-$index">
                     Value*
                   </label>
@@ -163,7 +222,7 @@
               </div>
 
               <div class='form-group' ng-show="siteHeaderKeys.length == 0">
-                <div class='col-sm-2'>
+                <div class='col-sm-3'>
                   <strong>Custom Header</strong>
                 </div>
                 <div class='col-sm-2'>
