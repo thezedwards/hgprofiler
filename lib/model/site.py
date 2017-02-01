@@ -58,10 +58,14 @@ class Site(Base):
     tested_at = Column(DateTime, nullable=True)
     valid = Column(Boolean, nullable=False, default=False)
     headers = Column(PickleType, nullable=True, default={})
+    censor_images = Column(Boolean, nullable=False, default=False)
+    wait_time = Column(Integer, nullable=False, default=1)
+    use_proxy = Column(Boolean, nullable=False, default=False)
 
     def __init__(self, name, url, test_username_pos,
                  status_code=None, match_type=None, match_expr=None,
-                 test_username_neg=None, headers={}):
+                 test_username_neg=None, headers={},
+                 censor_images=False, wait_time=1, use_proxy=False):
         ''' Constructor. '''
 
         self.name = name
@@ -71,6 +75,9 @@ class Site(Base):
         self.match_expr = match_expr
         self.test_username_pos = test_username_pos
         self.headers = headers
+        self.censor_images = censor_images
+        self.use_proxy = use_proxy
+        self.wait_time = wait_time
 
         if test_username_neg is None:
             self.test_username_neg = random_string(16)
@@ -112,7 +119,10 @@ class Site(Base):
             'test_result_neg': test_result_neg,
             'tested_at': tested_at,
             'valid': self.valid,
-            'headers': self.headers
+            'headers': self.headers,
+            'censor_images': self.censor_images,
+            'wait_time': self.wait_time,
+            'use_proxy': self.use_proxy
         }
 
     def get_url(self, username):

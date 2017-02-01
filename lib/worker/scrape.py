@@ -104,7 +104,8 @@ def check_username(username, site_id, category_id, total,
     splash_result = _splash_username_request(username,
                                              site)
     # Save image file
-    image_file = _save_image(db_session, splash_result)
+    image_file = _save_image(db_session, splash_result,
+                             censor=site.censor_images)
 
     # Save result to DB.
     result = Result(
@@ -142,7 +143,8 @@ def check_username(username, site_id, category_id, total,
     return result.id
 
 
-def splash_request(target_url, headers={}, request_timeout=None):
+def splash_request(target_url, headers={}, request_timeout=None,
+                   wait=1, use_proxy=False):
     ''' Ask splash to render a page. '''
     db_session = worker.get_session()
     splash_url = get_config(db_session, 'splash_url', required=True).value
@@ -150,6 +152,7 @@ def splash_request(target_url, headers={}, request_timeout=None):
                              required=True).value
     splash_pass = get_config(db_session, 'splash_password',
                              required=True).value
+    proxy = None
 
     if request_timeout is None:
         try:
@@ -173,7 +176,7 @@ def splash_request(target_url, headers={}, request_timeout=None):
         'jpeg': 1,
         'har': 1,
         'history': 1,
-        'wait': 1,
+        'wait': wait,
         'render_all': 1,
         'width': 1024,
         'height': 768,
@@ -183,7 +186,8 @@ def splash_request(target_url, headers={}, request_timeout=None):
     }
 
     # Use proxy if enabled
-    proxy = random_proxy(db_session)
+    if use_proxy:
+        proxy = random_proxy(db_session)
 
     if proxy:
         payload['proxy'] = proxy
@@ -209,7 +213,9 @@ def _splash_username_request(username, site):
         site.headers = {}
 
     splash_response = splash_request(target_url,
-                                     site.headers)
+                                     site.headers,
+                                     wait=site.wait_time,
+                                     use_proxy=site.use_proxy)
 
     result = {
         'code': splash_response.status_code,
@@ -270,9 +276,17 @@ def _check_splash_response(site, splash_response, splash_data):
     return status_ok and match_ok
 
 
-def _save_image(db_session, scrape_result):
+def _save_image(db_session, scrape_result, censor=False):
     """ Save the image returned by Splash to a local file. """
-    if scrape_result['error'] is None:
+    if scrape_result['error'] is None and censor is True:
+        # Get the generic censored image.
+        image_file = (
+            db_session
+            .query(File)
+            .filter(File.name == 'censored.png')
+            .one()
+        )
+    elif scrape_result['error'] is None:
         image_name = '{}.jpg'.format(scrape_result['site']['name']
                                      .replace(' ', ''))
         content = base64.decodestring(scrape_result['image'].encode('utf8'))

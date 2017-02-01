@@ -23,6 +23,9 @@ SITE_ATTRS = {
     'test_username_pos': {'type': str, 'required': True},
     'test_username_neg': {'type': str, 'required': False},
     'headers': {'type': dict, 'required': False},
+    'censor_images': {'type': bool, 'required': True},
+    'wait_time': {'type': int, 'required': True},
+    'use_proxy': {'type': bool, 'required': True},
 }
 
 
@@ -54,6 +57,9 @@ class SiteView(FlaskView):
                         "test_status": "f",
                         "tested_at": "2016-01-01T00:00:00.000000+00:00",
                         "headers": {"referer": "http://www.google.com"},
+                        "censor_images": false,
+                        "wait_time": 5,
+                        "use_proxy": false,
                     },
                     ...
                 ],
@@ -85,6 +91,12 @@ class SiteView(FlaskView):
         :>json str sites[n].test_username_neg: the username that
             does not exist on the site (used for testing)
         :>json array sites[n].headers: the custom headers
+        :>json bool sites[n].censor_images: whether to censor images
+            from this profile
+        :>json int sites[n].wait_time: time (in seconds) to wait for updates
+            after page is loaded
+        :>json bool sites[n].use_proxy: whether to proxy requests
+            for this profile URL
 
         :status 200: ok
         :status 400: invalid argument[s]
@@ -140,6 +152,9 @@ class SiteView(FlaskView):
                         "test_username_pos": "john",
                         "test_username_neg": "dPGMFrf72SaS",
                         "headers": {"referer": "http://www.google.com"},
+                        "censor_images": false,
+                        "wait_time": 5,
+                        "use_proxy": false,
                     },
                     ...
                 ]
@@ -169,6 +184,12 @@ class SiteView(FlaskView):
         :<json string sites[n].test_username_neg: username that does not exist
            on site (used for testing)
         :<json array sites[n].headers: custom headers
+        :<json bool sites[n].censor_images: whether to censor images
+            from this profile
+        :<json int sites[n].wait_time: time (in seconds) to wait for updates
+            after page is loaded
+        :<json bool sites[n].use_proxy: whether to proxy requests
+            for this profile URL
 
         :>header Content-Type: application/json
         :>json string message: API response message
@@ -191,8 +212,8 @@ class SiteView(FlaskView):
                                          'following is required: '
                                          'status code or page match.')
 
-            if not site_json['url'].contains('%s'):
-                        raise BadRequest('URL must contain replacement character %s')
+            if '%s' not in site_json['url']:
+                raise BadRequest('URL must contain replacement character %s')
 
         # Save sites
         for site_json in request_json['sites']:
@@ -260,6 +281,9 @@ class SiteView(FlaskView):
                 "test_username_pos": "bob",
                 "test_username_ne": "adfjf393rfjffkjd",
                 "headers": {"referer": "http://www.google.com"},
+                "censor_images": false,
+                "wait_time": 5,
+                "use_proxy": false,
             }
 
         **Example Response**
@@ -279,6 +303,9 @@ class SiteView(FlaskView):
                 "test_status": "f",
                 "tested_at": "2016-01-01T00:00:00.000000+00:00",
                 "headers": {"referer": "http://www.google.com"},
+                "censor_images": false,
+                "wait_time": 5,
+                "use_proxy": false,
             },
 
         :<header Content-Type: application/json
@@ -290,6 +317,10 @@ class SiteView(FlaskView):
         :<json string test_username_neg: username that does not
             exist on site (used for testing)
         :<json array headers: custom headers
+        :<json bool censor_images: whether to censor images from this profile
+        :<json int wait_time: time (in seconds) to wait for updates
+            after page is loaded
+        :<json bool use_proxy: whether to proxy requests for this profile URL
 
         :>header Content-Type: application/json
         :>json int id: unique identifier for site
@@ -308,6 +339,10 @@ class SiteView(FlaskView):
         :>json str test_username_neg: username that does not
             exist on site (used for testing)
         :>json array headers: custom headers
+        :>json bool censor_images: whether to censor images from this profile
+        :>json int wait_time: time (in seconds) to wait for updates after
+            page is loaded
+        :>json bool use_proxy: whether to proxy requests for this profile URL
 
         :status 202: updated
         :status 400: invalid request body
@@ -367,6 +402,18 @@ class SiteView(FlaskView):
         if 'headers' in request_json:
             validate_json_attr('headers', SITE_ATTRS, request_json)
             site.headers = request_json['headers']
+
+        if 'censor_images' in request_json:
+            validate_json_attr('censor_images', SITE_ATTRS, request_json)
+            site.censor_images = request_json['censor_images']
+
+        if 'use_proxy' in request_json:
+            validate_json_attr('use_proxy', SITE_ATTRS, request_json)
+            site.use_proxy = request_json['use_proxy']
+
+        if 'wait_time' in request_json:
+            validate_json_attr('wait_time', SITE_ATTRS, request_json)
+            site.wait_time = request_json['wait_time']
 
         # Save the updated site
         try:

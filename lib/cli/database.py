@@ -69,7 +69,7 @@ class DatabaseCli(cli.BaseCli):
 
     def _create_fixture_images(self, config):
         '''
-        Create the generic error image.
+        Create the generic error and censored images.
 
         Since this script will often run as root, it modifies the owner of the
         new file to match the owner of the data directory.
@@ -77,9 +77,23 @@ class DatabaseCli(cli.BaseCli):
 
         session = app.database.get_session(self._db)
 
+        # Generic error image
         image_name = 'hgprofiler_error.png'
         data_stat = os.stat(get_path('data'))
         img_path = os.path.join(get_path('static'), 'img', image_name)
+
+        with open(img_path, 'rb') as img:
+            img_data = img.read()
+            image_file = File(name=image_name, mime='image/png',
+                              content=img_data)
+            image_file.chown(data_stat.st_uid, data_stat.st_gid)
+            session.add(image_file)
+
+        # Generic censored image
+        image_name = 'censored.png'
+        data_stat = os.stat(get_path('data'))
+        img_path = os.path.join(get_path('static'), 'img', image_name)
+
         with open(img_path, 'rb') as img:
             img_data = img.read()
             image_file = File(name=image_name, mime='image/png',
