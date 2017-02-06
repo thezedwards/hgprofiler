@@ -940,6 +940,14 @@ class DatabaseCli(cli.BaseCli):
         )
         session.add(plurk)
 
+        porn_dot_come = Site(
+            name='Porn.com',
+            url='http://www.porn.com/profile/%s',
+            status_code=200,
+            test_username_pos='megimore'
+        )
+        session.add(porn_dot_come)
+
         pregame = Site(
             name='Pregame',
             url='http://pregame.com/members/%s/default.aspx',
@@ -1059,7 +1067,7 @@ class DatabaseCli(cli.BaseCli):
             name='SmiteGuru',
             url='http://smite.guru/stats/xb/%s/summary',
             match_type='css',
-            match_expr='div.header.panel',
+            match_expr='div.profile-icon',
             test_username_pos='WatsonV3'
         )
         session.add(smite_guru)
@@ -1076,7 +1084,7 @@ class DatabaseCli(cli.BaseCli):
             name='Smule',
             url='http://www.smule.com/%s',
             status_code=200,
-            test_username_pos='AbsurdJoker'
+            test_username_pos='MrAcoustic'
         )
         session.add(smule)
 
@@ -1472,6 +1480,9 @@ class DatabaseCli(cli.BaseCli):
             'SoundCloud',
 
         ]
+        porn_sites = [
+            'Porn.com',
+        ]
         review_sites = [
             'Metacritic',
             'Mouth Shut',
@@ -1649,6 +1660,16 @@ class DatabaseCli(cli.BaseCli):
             sites=sites
         )
         session.add(music)
+
+        # Pornograpy
+        sites = session.query(Site) \
+                       .filter(Site.name.in_(porn_sites)) \
+                       .all()
+        pornography = Category(
+            name='Pornography',
+            sites=sites
+        )
+        session.add(pornography)
 
         # Reviews and Ratings
         sites = session.query(Site) \
