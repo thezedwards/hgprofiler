@@ -95,11 +95,15 @@ class Site(Base):
 
         if self.test_result_pos:
             test_result_pos = self.test_result_pos.as_dict()
+            # Remove HTML to minimise memory footprint
+            test_result_pos.pop('html', None)
         else:
             test_result_pos = None
 
         if self.test_result_neg:
             test_result_neg = self.test_result_neg.as_dict()
+            # Remove HTML to minimise memory footprint
+            test_result_neg.pop('html', None)
         else:
             test_result_neg = None
 
