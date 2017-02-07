@@ -7,7 +7,7 @@ from app.authorization import login_required
 from app.notify import notify_mask_client
 from app.rest import (get_int_arg,
                       get_paging_arguments)
-from model import Archive
+from model import Archive, Category
 
 
 class ArchiveView(FlaskView):
@@ -36,7 +36,9 @@ class ArchiveView(FlaskView):
                         "found_count": 65,
                         "not_found_count": 101,
                         "error_count": 9,
-                        "zip_file": "bob-2298d96a-653d-42f2-b6d3-73ff337d51ce.zip"
+                        "zip_file": "bob-2298d96a-653d-42f2.zip",
+                        "category_id": 2,
+                        "category_name": "Business",
                     },
                     ...
                 ],
@@ -66,6 +68,8 @@ class ArchiveView(FlaskView):
             this archive that raised an error
         while searching for username
         :>json str archives[n].zip_file: the zip file location for this archive
+        :>json str archives[n].category_id: category ID of the archive
+        :>json str archives[n].category_name: category name of the archive
 
         :status 200: ok
         :status 400: invalid argument[s]
@@ -86,10 +90,21 @@ class ArchiveView(FlaskView):
                      .limit(results_per_page) \
                      .offset((page - 1) * results_per_page)
 
+        # Get categories
+        categories = {}
+        for category in g.db.query(Category).all():
+            categories[category.id] = category.name
+
         archives = list()
 
         for archive in query:
-            archives.append(archive.as_dict())
+            archive_dict = archive.as_dict()
+            try:
+                archive_dict['category_name'] = categories[archive.category_id]
+            except KeyError:
+                archive_dict['category_name'] = 'All sites'
+
+            archives.append(archive_dict)
 
         return jsonify(
             archives=archives,
