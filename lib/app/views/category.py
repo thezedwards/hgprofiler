@@ -149,7 +149,7 @@ class CategoryView(FlaskView):
         for category_json in request_json['categories']:
             try:
                 category = Category(
-                    name=category_json['name'].lower().strip(),
+                    name=category_json['name'].strip(),
                     sites=sites
                 )
                 g.db.add(category)
@@ -350,7 +350,7 @@ class CategoryView(FlaskView):
 
         if 'name' in request_json:
             validate_json_attr('name', GROUP_ATTRS, request_json)
-            category.name = request_json['name'].lower().strip()
+            category.name = request_json['name'].strip()
 
         if 'sites' in request_json:
             try:
