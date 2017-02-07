@@ -102,7 +102,7 @@ help() {
 ### END SCRIPT FUNCTIONS ###
 
 # Command options.
-COMMANDS=("serve" "shell" "db" "supervisorctl" "tail" "pub" "fixpub" "help")
+COMMANDS=("serve" "shell" "db" "supervisorctl" "tail" "pub" "fixpub" "help", "redis")
 COMMAND=$1
 
 # Ensure command is supplied.
