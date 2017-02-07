@@ -37,6 +37,11 @@ shell() {
   docker exec -it ${APP_CONTAINER} bin/bash
 }
 
+# Run python command.
+python() {
+  docker exec -it ${APP_CONTAINER} su ${APP_USER} -c "cd /hgprofiler/lib; python3 $@"
+}
+
 
 # Database commands.
 db() {
@@ -96,13 +101,14 @@ help() {
   echo -e "   $BOLD supervisorctl $NORMAL- Execute supervisorctl command, e.g. 'restart all'"
   echo -e "   $BOLD redis $NORMAL- Execute redis-cli command, e.g. 'flushall'"
   echo -e "   $BOLD tail $NORMAL- Tail logs, e.g. 'supervisor/*', 'supervisor/scrape*stderr*'"
+  echo -e "   $BOLD python $NORMAL- Run python command"
   echo "-----------------------------------------------------------------------"
 }
 
 ### END SCRIPT FUNCTIONS ###
 
 # Command options.
-COMMANDS=("serve" "shell" "db" "supervisorctl" "tail" "pub" "fixpub" "help", "redis")
+COMMANDS=("serve" "shell" "db" "supervisorctl" "tail" "pub" "fixpub" "help", "redis", "python")
 COMMAND=$1
 
 # Ensure command is supplied.
