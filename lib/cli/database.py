@@ -140,6 +140,17 @@ class DatabaseCli(cli.BaseCli):
         )
         session.add(about_me)
 
+        adult_space = Site(
+            name='Adult Space',
+            url='https://users.adultspace.com/%s/',
+            status_code=200,
+            match_type='css',
+            match_expr='div.profiletopbar',
+            test_username_pos='sunshine86angel',
+            censor_images=True
+        )
+        session.add(adult_space)
+
         anobii = Site(
             name='Anobii',
             url='http://www.anobii.com/%s/books',
@@ -403,6 +414,15 @@ class DatabaseCli(cli.BaseCli):
         )
         session.add(dribble)
 
+        dr_tuber = Site(
+            name='Dr Tuber',
+            url='http://www.drtuber.com/user/%s',
+            status_code=200,
+            test_username_pos='freyax',
+            censor_images=True,
+        )
+        session.add(dr_tuber)
+
         ebay = Site(
             name='Ebay',
             url='http://www.ebay.com/usr/%s',
@@ -513,6 +533,15 @@ class DatabaseCli(cli.BaseCli):
             test_username_pos='daniel'
         )
         session.add(friend_finder_x)
+
+        fuckbook = Site(
+            name='Fuckbook',
+            url='https://www.fuckbook.xxx/en/p/%s',
+            status_code=200,
+            test_username_pos='mitsy86',
+            censor_images=True
+        )
+        session.add(fuckbook)
 
         funny_or_die = Site(
             name='Funny or Die',
@@ -944,7 +973,8 @@ class DatabaseCli(cli.BaseCli):
             name='Porn.com',
             url='http://www.porn.com/profile/%s',
             status_code=200,
-            test_username_pos='megimore'
+            test_username_pos='megimore',
+            censor_images=True
         )
         session.add(porn_dot_come)
 
@@ -955,6 +985,15 @@ class DatabaseCli(cli.BaseCli):
             test_username_pos='sleepyj'
         )
         session.add(pregame)
+
+        nuvid = Site(
+            name='NuVid',
+            url='http://www.nuvid.com/user/%s',
+            status_code=200,
+            test_username_pos='nwrl4lqgjx',
+            censor_images=True
+        )
+        session.add(nuvid)
 
         rapid7_community = Site(
             name='Rapid7 Community',
@@ -1340,6 +1379,16 @@ class DatabaseCli(cli.BaseCli):
         )
         session.add(wordpress)
 
+        worldwide_wives = Site(
+            name='Wordwide Wives',
+            url='http://www.worldwidewives.com/profile/%s/',
+            match_type='css',
+            match_expr='div.profile-information',
+            test_username_pos='bill25044',
+            censor_images=True
+        )
+        session.add(worldwide_wives)
+
         xbox_gamertag = Site(
             name='Xbox Gamertag',
             url='https://www.xboxgamertag.com/search/%s/',
@@ -1481,7 +1530,12 @@ class DatabaseCli(cli.BaseCli):
 
         ]
         porn_sites = [
+            'Adult Space',
+            'Dr Tuber',
+            'Fuckbook',
             'Porn.com',
+            'NuVid',
+            'Worldwide wives',
         ]
         review_sites = [
             'Metacritic',
