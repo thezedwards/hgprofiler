@@ -49,8 +49,7 @@
                   {{archives[id].username}}
                 </td>
                 <td>
-                  <span ng-if='archives[id].category != null'>{{archives[id].category['name']}}</span>
-                  <span ng-if='archives[id].category == null'>All sites</span>
+                  {{archives[id].categoryName}}
                 </td>
                 <td>
                   {{archives[id].siteCount}}
