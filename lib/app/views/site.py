@@ -3,7 +3,6 @@ from flask.ext.classy import FlaskView, route
 from werkzeug.exceptions import BadRequest, NotFound
 from sqlalchemy.exc import IntegrityError, DBAPIError
 
-# import app.queue
 import worker
 from app.authorization import login_required
 from app.notify import notify_mask_client
@@ -15,7 +14,7 @@ from helper.functions import random_string
 from model import Site, Category
 
 # Dictionary of site attributes used for validation of json POST/PUT requests
-SITE_ATTRS = {
+_site_attrs = {
     'name': {'type': str, 'required': True},
     'url': {'type': str, 'required': True},
     'match_expr': {'type': str, 'required': False, 'allow_null': True},
@@ -204,7 +203,7 @@ class SiteView(FlaskView):
 
         # Ensure all data is valid before db operations
         for site_json in request_json['sites']:
-            validate_request_json(site_json, SITE_ATTRS)
+            validate_request_json(site_json, _site_attrs)
 
             if (site_json['match_type'] is None or
                 site_json['match_expr'] is None) and \
@@ -362,23 +361,23 @@ class SiteView(FlaskView):
 
         # Validate data and set attributes
         if 'name' in request_json:
-            validate_json_attr('name', SITE_ATTRS, request_json)
+            validate_json_attr('name', _site_attrs, request_json)
             site.name = request_json['name'].strip()
 
         if 'url' in request_json:
-            validate_json_attr('url', SITE_ATTRS, request_json)
+            validate_json_attr('url', _site_attrs, request_json)
             site.url = request_json['url'].lower().strip()
 
         if 'match_expr' in request_json:
-            validate_json_attr('match_expr', SITE_ATTRS, request_json)
+            validate_json_attr('match_expr', _site_attrs, request_json)
             site.match_expr = request_json['match_expr']
 
         if 'match_type' in request_json:
-            validate_json_attr('match_type', SITE_ATTRS, request_json)
+            validate_json_attr('match_type', _site_attrs, request_json)
             site.match_type = request_json['match_type'].strip()
 
         if 'status_code' in request_json:
-            validate_json_attr('status_code', SITE_ATTRS, request_json)
+            validate_json_attr('status_code', _site_attrs, request_json)
             status = request_json['status_code']
             site.status_code = None if status is None else int(status)
 
@@ -390,30 +389,30 @@ class SiteView(FlaskView):
                                      'status code or page match.')
 
         if 'test_username_pos' in request_json:
-            validate_json_attr('test_username_pos', SITE_ATTRS, request_json)
+            validate_json_attr('test_username_pos', _site_attrs, request_json)
             site.test_username_pos = (request_json['test_username_pos']
                                       .lower()
                                       .strip())
 
         if 'test_username_neg' in request_json:
-            validate_json_attr('test_username_neg', SITE_ATTRS, request_json)
+            validate_json_attr('test_username_neg', _site_attrs, request_json)
             site.test_username_neg = (request_json['test_username_neg']
                                       .lower()
                                       .strip())
         if 'headers' in request_json:
-            validate_json_attr('headers', SITE_ATTRS, request_json)
+            validate_json_attr('headers', _site_attrs, request_json)
             site.headers = request_json['headers']
 
         if 'censor_images' in request_json:
-            validate_json_attr('censor_images', SITE_ATTRS, request_json)
+            validate_json_attr('censor_images', _site_attrs, request_json)
             site.censor_images = request_json['censor_images']
 
         if 'use_proxy' in request_json:
-            validate_json_attr('use_proxy', SITE_ATTRS, request_json)
+            validate_json_attr('use_proxy', _site_attrs, request_json)
             site.use_proxy = request_json['use_proxy']
 
         if 'wait_time' in request_json:
-            validate_json_attr('wait_time', SITE_ATTRS, request_json)
+            validate_json_attr('wait_time', _site_attrs, request_json)
             site.wait_time = request_json['wait_time']
 
         # Save the updated site
@@ -561,10 +560,6 @@ class SiteView(FlaskView):
                         tracker_id=tracker_id,
                         jobdesc=description
                     )
-                    #app.queue.schedule_site_test(
-                    #    site=site,
-                    #    tracker_id=tracker_id,
-                    #)
 
         response = jsonify(tracker_ids=tracker_ids)
         response.status_code = 202
@@ -649,15 +644,11 @@ class SiteView(FlaskView):
 
             if job['name'] == 'test':
                 description = 'Testing site "{}"'.format(site.name)
-                worker.scrape.schedule_test.enqueue(
-                    site=site,
+                worker.scrape.test_site.enqueue(
+                    site_id=site.id,
                     tracker_id=tracker_id,
                     jobdesc=description
                 )
-                #app.queue.schedule_site_test(
-                #    site=site,
-                #    tracker_id=tracker_id,
-                #)
 
         response = jsonify(tracker_ids=tracker_ids)
         response.status_code = 202
