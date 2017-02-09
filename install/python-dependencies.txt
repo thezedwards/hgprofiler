@@ -9,6 +9,6 @@ phonenumbers
 pillow
 pycurl
 requests
-rq
+rq>=7.1
 SQLAlchemy
 sqlalchemy_utils
