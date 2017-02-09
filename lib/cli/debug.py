@@ -3,7 +3,6 @@ import json
 
 import app.database
 import cli
-# from worker.scrape import USER_AGENT
 from worker.scrape import splash_request
 
 
