@@ -3,19 +3,22 @@ from flask.ext.classy import FlaskView
 from werkzeug.exceptions import BadRequest, NotFound
 
 import app.config
-import app.queue
+import worker.scrape
 from app.authorization import login_required
 from app.rest import validate_request_json
 from helper.functions import random_string
 from model import Category, Site
 
 
-USERNAME_ATTRS = {
+_username_attrs = {
     'usernames': {'type': list, 'required': True},
     'category': {'type': int, 'required': False},
     'site': {'type': int, 'required': False},
     'test': {'type': bool, 'required': False},
 }
+
+_config = app.config.get_config()
+_redis_worker = dict(_config.items('redis_worker'))
 
 
 class UsernameView(FlaskView):
@@ -81,7 +84,7 @@ class UsernameView(FlaskView):
         if 'usernames' not in request_json:
             raise BadRequest('`usernames` is required')
 
-        validate_request_json(request_json, USERNAME_ATTRS)
+        validate_request_json(request_json, _username_attrs)
 
         if len(request_json['usernames']) == 0:
             raise BadRequest('At least one username is required')
@@ -138,16 +141,20 @@ class UsernameView(FlaskView):
 
             # Queue a job for each site.
             for site in valid_sites:
-                job_id = app.queue.schedule_username(
+                description = 'Checking {} for user "{}"'.format(site.name,
+                                                                 username)
+                job = worker.scrape.check_username.enqueue(
                     username=username,
-                    site=site,
+                    site_id=site.id,
                     category_id=category_id,
                     total=total,
                     tracker_id=tracker_id,
-                    test=test
+                    test=test,
+                    jobdesc=description,
+                    timeout=_redis_worker['scrape_timeout']
                 )
                 jobs.append({
-                    'id': job_id,
+                    'id': job.id,
                     'username': username,
                     'category': category_id,
                 })
