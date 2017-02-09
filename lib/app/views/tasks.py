@@ -79,10 +79,10 @@ class TasksView(FlaskView):
                     {
                         "description": "Doing important stuff...",
                         "exception": "Traceback (most recent call...",
-                        "function": "worker.index.reindex_site(1)",
+                        "function": "worker.scrape.check_site(1)",
                         "id": "dea6bd20-4f8e-44d2-bee1-b5db78eb4cc8",
                         "type": "posts",
-                        "original_queue": "index"
+                        "original_queue": "scrape"
                     },
                     ...
                 ]

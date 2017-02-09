@@ -3,7 +3,8 @@ from flask.ext.classy import FlaskView, route
 from werkzeug.exceptions import BadRequest, NotFound
 from sqlalchemy.exc import IntegrityError, DBAPIError
 
-import app.queue
+# import app.queue
+import worker
 from app.authorization import login_required
 from app.notify import notify_mask_client
 from app.rest import (get_int_arg,
@@ -554,10 +555,16 @@ class SiteView(FlaskView):
                 tracker_ids[site.id] = tracker_id
 
                 if job['name'] == 'test':
-                    app.queue.schedule_site_test(
-                        site=site,
+                    description = 'Testing site "{}"'.format(site.name)
+                    worker.scrape.test_site.enqueue(
+                        site_id=site.id,
                         tracker_id=tracker_id,
+                        jobdesc=description
                     )
+                    #app.queue.schedule_site_test(
+                    #    site=site,
+                    #    tracker_id=tracker_id,
+                    #)
 
         response = jsonify(tracker_ids=tracker_ids)
         response.status_code = 202
@@ -641,10 +648,16 @@ class SiteView(FlaskView):
             tracker_ids[site.id] = tracker_id
 
             if job['name'] == 'test':
-                app.queue.schedule_site_test(
+                description = 'Testing site "{}"'.format(site.name)
+                worker.scrape.schedule_test.enqueue(
                     site=site,
                     tracker_id=tracker_id,
+                    jobdesc=description
                 )
+                #app.queue.schedule_site_test(
+                #    site=site,
+                #    tracker_id=tracker_id,
+                #)
 
         response = jsonify(tracker_ids=tracker_ids)
         response.status_code = 202

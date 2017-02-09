@@ -1,21 +1,25 @@
 import base64
 import json
-from datetime import datetime
-from urllib.parse import urljoin
-
 import parsel
 import requests
+
+from datetime import datetime
 from sqlalchemy.sql.expression import func
 from sqlalchemy.orm.exc import NoResultFound
+from urllib.parse import urljoin
 
-import app.database
-import app.queue
+import app.config
 import worker
+import worker.archive
+from app.queue import scrape_queue, queueable
 from model import File, Result, Site, Proxy
 from model.configuration import get_config
 
 USER_AGENT = 'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:40.0) '\
              'Gecko/20100101 Firefox/40.1'
+
+_config = app.config.get_config()
+_redis_worker = dict(_config.items('redis_worker'))
 
 
 class ScrapeException(Exception):
@@ -25,6 +29,11 @@ class ScrapeException(Exception):
         self.message = message
 
 
+@queueable(
+    queue=scrape_queue,
+    timeout=60,
+    jobdesc='Testing username.'
+)
 def test_site(site_id, tracker_id, request_timeout=10):
     """
     Perform postive and negative test of site.
@@ -87,6 +96,11 @@ def test_site(site_id, tracker_id, request_timeout=10):
     redis.publish('site', json.dumps(msg))
 
 
+@queueable(
+    queue=scrape_queue,
+    timeout=60,
+    jobdesc='Checking username.'
+)
 def check_username(username, site_id, category_id, total,
                    tracker_id, test=False):
     """
@@ -136,10 +150,17 @@ def check_username(username, site_id, category_id, total,
 
         # If this username search is complete, then queue an archive job.
         if current == total:
-            app.queue.schedule_archive(username, category_id, tracker_id)
+            description = 'Archiving results ' \
+                          'for username "{}"'.format(username)
+            worker.archive.create_archive.enqueue(
+                username=username,
+                category_id=category_id,
+                tracker_id=tracker_id,
+                jobdesc=description,
+                timeout=_redis_worker['archive_timeout']
+            )
 
     worker.finish_job()
-
     return result.id
 
 
@@ -152,6 +173,8 @@ def splash_request(target_url, headers={}, request_timeout=None,
                              required=True).value
     splash_pass = get_config(db_session, 'splash_password',
                              required=True).value
+    splash_user_agent = get_config(db_session, 'splash_user_agent',
+                                   required=True).value
     proxy = None
 
     if request_timeout is None:
@@ -168,7 +191,7 @@ def splash_request(target_url, headers={}, request_timeout=None,
 
     if 'user-agent' not in [header.lower() for
                             header in headers.keys()]:
-        headers['user-agent'] = USER_AGENT
+        headers['user-agent'] = splash_user_agent
 
     payload = {
         'url': target_url,
