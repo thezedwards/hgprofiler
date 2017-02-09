@@ -6,6 +6,7 @@ import json
 from sqlalchemy.orm import subqueryload
 
 import worker
+from app.queue import archive_queue, queueable
 from model import Archive, File, Result
 
 
@@ -92,6 +93,11 @@ def create_zip(filename, results):
     return zip_file.id
 
 
+@queueable(
+    queue=archive_queue,
+    timeout=60,
+    jobdesc='Archiving results.'
+)
 def create_archive(username, category_id, tracker_id):
     """
     Archive summary of results in the database and store
