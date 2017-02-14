@@ -12,13 +12,14 @@ class Archive {
     int notFoundCount;
     int errorCount;
     String zipFileUrl;
+    DateTime createdAt;
 
     // Errors related to creating or loading this profile.
     String error;
 
     Archive(String trackerId, DateTime date, String username, int categoryId,
             String categoryName, int siteCount, int foundCount, int notFoundCount,
-            int errorCount, String zipFileUrl) {
+            int errorCount, String zipFileUrl, DateTime createdAt) {
         this.trackerId = trackerId;
         this.date = date;
         this.username = username;
@@ -29,6 +30,7 @@ class Archive {
         this.notFoundCount = notFoundCount;
         this.errorCount = errorCount;
         this.zipFileUrl = zipFileUrl;
+        this.createdAt = createdAt;
     }
 
    Archive.fromJson(Map json) {
@@ -43,5 +45,6 @@ class Archive {
         this.notFoundCount = json['not_found_count'];
         this.errorCount = json['error_count'];
         this.zipFileUrl = json['zip_file_url'];
+        this.createdAt = DateTime.parse(json['created_at']);
     }
 }
