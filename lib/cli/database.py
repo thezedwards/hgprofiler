@@ -78,7 +78,7 @@ class DatabaseCli(cli.BaseCli):
         session = app.database.get_session(self._db)
 
         # Generic error image
-        image_name = 'hgprofiler_error.png'
+        image_name = config.get('images', 'error_image')
         data_stat = os.stat(get_path('data'))
         img_path = os.path.join(get_path('static'), 'img', image_name)
 
@@ -90,7 +90,7 @@ class DatabaseCli(cli.BaseCli):
             session.add(image_file)
 
         # Generic censored image
-        image_name = 'censored.png'
+        image_name = config.get('images', 'censored_image')
         data_stat = os.stat(get_path('data'))
         img_path = os.path.join(get_path('static'), 'img', image_name)
 
