@@ -10,5 +10,6 @@ pillow
 pycurl
 requests
 rq>=0.7.1
+schedule
 SQLAlchemy
 sqlalchemy_utils

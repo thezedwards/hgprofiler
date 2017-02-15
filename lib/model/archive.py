@@ -1,3 +1,4 @@
+from datetime import datetime
 from sqlalchemy import (DateTime,
                         Column,
                         func,
@@ -29,6 +30,7 @@ class Archive(Base):
     not_found_count = Column(Integer, nullable=False)
     error_count = Column(Integer, nullable=False)
     zip_file_id = Column(Integer, ForeignKey('file.id', name='fk_zip_file'))
+    created_at = Column(DateTime, nullable=False, default=datetime.utcnow)
 
     def __init__(self,
                  tracker_id,
@@ -55,6 +57,7 @@ class Archive(Base):
 
         return {
             'id': self.id,
+            'created_at': self.created_at.isoformat(),
             'tracker_id': self.tracker_id,
             'username': self.username,
             'category_id': self.category_id,

@@ -3,7 +3,7 @@ import json
 import parsel
 import requests
 
-from datetime import datetime
+from datetime import datetime, timedelta
 from sqlalchemy.sql.expression import func
 from sqlalchemy.orm.exc import NoResultFound
 from urllib.parse import urljoin
@@ -12,6 +12,7 @@ import app.config
 import worker
 import worker.archive
 from app.queue import scrape_queue, queueable
+from helper.functions import random_string
 from model import File, Result, Site, Proxy
 from model.configuration import get_config
 
@@ -20,6 +21,13 @@ USER_AGENT = 'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:40.0) '\
 
 _config = app.config.get_config()
 _redis_worker = dict(_config.items('redis_worker'))
+_days_to_keep_result = 7
+_censored_image_name = _config.get('images', 'censored_image')
+_error_image_name = _config.get('images', 'error_image')
+_permanent_images = [
+    _censored_image_name,
+    _error_image_name
+]
 
 
 class ScrapeException(Exception):
@@ -124,6 +132,7 @@ def check_username(username, site_id, category_id, total,
     # Save result to DB.
     result = Result(
         tracker_id=tracker_id,
+        site_id=splash_result['site']['id'],
         site_name=splash_result['site']['name'],
         site_url=splash_result['url'],
         status=splash_result['status'],
@@ -361,3 +370,39 @@ def random_proxy(db_session=None):
     proxy_url += '{}:{}'.format(proxy.host, proxy.port)
 
     return proxy_url
+
+
+@queueable(
+    queue=scrape_queue,
+    timeout=60,
+    jobdesc='Deleting expired results.'
+)
+def delete_expired_results():
+    """
+    Delete results more than _days_to_keep_result.
+
+    Sites including expired results are retested.
+    """
+    worker.start_job()
+    db_session = worker.get_session()
+    tested_sites = set()
+    expiry = datetime.utcnow() - timedelta(days=_days_to_keep_result)
+    expired_results = db_session.query(Result).filter(
+        Result.created_at < expiry).all()
+
+    for result in expired_results:
+        # Don't delete permanent image files
+        if result.image_file.name in _permanent_images:
+            result.image_file = None
+            result.image_file_id = None
+            db_session.flush()
+
+        db_session.delete(result)
+
+        if result.site_id not in tested_sites:
+            tracker_id = 'tracker.{}'.format(random_string(10))
+            test_site.enqueue(result.site_id, tracker_id)
+            tested_sites.add(result.site_id)
+
+    db_session.commit()
+    worker.finish_job()

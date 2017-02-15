@@ -3,11 +3,14 @@ import io
 import csv
 import json
 
+from datetime import datetime, timedelta
 from sqlalchemy.orm import subqueryload
 
 import worker
 from app.queue import archive_queue, queueable
 from model import Archive, File, Result
+
+_days_to_keep_archive = 7
 
 
 class ArchiveException(Exception):
@@ -105,6 +108,7 @@ def create_archive(username, category_id, tracker_id):
     """
 
     redis = worker.get_redis()
+    worker.start_job()
     db_session = worker.get_session()
     found_count = 0
     not_found_count = 0
@@ -152,3 +156,21 @@ def create_archive(username, category_id, tracker_id):
         'archive': archive.as_dict(),
     }
     redis.publish('archive', json.dumps(message))
+    worker.finish_job()
+
+
+@queueable(
+    queue=archive_queue,
+    timeout=60,
+    jobdesc='Deleting expired archives.'
+)
+def delete_expired_archives():
+    """
+    Delete archives older than _days_to_keep_archive.
+    """
+    worker.start_job()
+    db_session = worker.get_session()
+    expiry = datetime.utcnow() - timedelta(days=_days_to_keep_archive)
+    db_session.query(Archive).filter(Archive.created_at < expiry).delete()
+    db_session.commit()
+    worker.finish_job()

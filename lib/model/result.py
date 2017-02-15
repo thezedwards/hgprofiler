@@ -30,6 +30,7 @@ class Result(Base):
     tracker_id = Column(String(255), nullable=False)
     site_name = Column(String(255), nullable=False)
     site_url = Column(String(255), nullable=False)
+    site_id = Column(Integer, nullable=False)
     status = Column(ChoiceType(STATUS_TYPES), nullable=False)
     image_file_id = Column(Integer,
                            ForeignKey('file.id',
@@ -43,12 +44,13 @@ class Result(Base):
     error = Column(String(255), nullable=True)
     html = Column(Text, nullable=True)
     username = Column(String(255), nullable=False)
-    completed_at = Column(DateTime, nullable=False, default=datetime.utcnow)
+    created_at = Column(DateTime, nullable=False, default=datetime.utcnow)
 
     def __init__(self,
                  tracker_id,
                  site_name,
                  site_url,
+                 site_id,
                  status,
                  username,
                  image_file_id=None,
@@ -58,6 +60,7 @@ class Result(Base):
         ''' Constructor. '''
 
         self.tracker_id = tracker_id
+        self.site_id = site_id
         self.site_name = site_name
         self.site_url = site_url
         self.status = status
@@ -70,14 +73,22 @@ class Result(Base):
     def as_dict(self):
         ''' Return dictionary representation of this result. '''
 
+        if self.image_file is not None:
+            image_file_url = self.image_file.url()
+            image_file_name = self.image_file.name
+        else:
+            image_file_url = None
+            image_file_name = None
+
         return {
-            'completed_at': self.completed_at.isoformat(),
+            'created_at': self.created_at.isoformat(),
             'error': self.error,
             'html': self.html,
             'id': self.id,
             'image_file_id': self.image_file_id,
-            'image_file_url': self.image_file.url(),
-            'image_file_name': self.image_file.name,
+            'image_file_url': image_file_url,
+            'image_file_name': image_file_name,
+            'site_id': self.site_id,
             'site_name': self.site_name,
             'site_url': self.site_url,
             'status': self.status.code,

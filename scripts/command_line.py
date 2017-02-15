@@ -196,6 +196,7 @@ def cli(config, app_host, token, log_file, log_level):
     if app_host:
         config.settings['profiler_app_host'] = app_host
 
+    config.api_host = os.path.join(config.settings['profiler_app_host'], 'api')
     config.log_file = log_file
     config.log_level = config.log_levels[log_level]
 
@@ -216,7 +217,8 @@ def get_token(config, username, password):
     """
     Obtain an API token.
     """
-    auth_url = config.settings['profiler_app_host'] + '/api/authentication/'
+    # auth_url = config.settings['profiler_app_host'] + '/api/authentication/'
+    auth_url = os.path.join(config.api_host, 'authentication/')
     payload = {'email': username, 'password': password}
     response = requests.post(auth_url, json=payload, verify=False)
     response.raise_for_status()
@@ -283,7 +285,7 @@ def submit_usernames(config,
     else:
         click.echo('[*] Extracted {} usernames.'.format(len(usernames)))
 
-    username_url = config.settings['profiler_app_host'] + '/api/username/'
+    username_url = os.path.join(config.api_host, 'username/')
     responses = []
 
     with click.progressbar(length=len(usernames),
@@ -369,9 +371,9 @@ def get_results(config,
         start = datetime.datetime.now()
         for username in bar:
             # Get results for username
-            archive_url = '{}/api/archive/?username={}' \
-                          .format(config.settings['profiler_app_host'],
-                                  username)
+            archive_url = os.path.join(config.api_url,
+                                       'archive/')
+            archive_url = archive_url + 'username={}'.format(username)
             response = requests.get(archive_url,
                                     headers=config.headers,
                                     verify=False)
@@ -470,9 +472,9 @@ def get_zip_results(config,
         start = datetime.datetime.now()
         for username in bar:
             # Get results for username
-            archive_url = '{}/api/archive/?username={}' \
-                          .format(config.settings['profiler_app_host'],
-                                  username)
+            archive_url = os.path.join(config.api_url,
+                                       'archive/')
+            archive_url = archive_url + 'username={}'.format(username)
             response = requests.get(archive_url,
                                     headers=config.headers,
                                     verify=False)
@@ -529,7 +531,7 @@ def get(config, resource, pretty):
     if not config.settings.get('profiler_api_token', None):
         raise ProfilerError('"--token" is required for this function.')
 
-    url = urllib.parse.urljoin(config.settings['profiler_app_host'], resource)
+    url = os.path.join(config.api_host, resource)
     response = requests.get(url, headers=config.headers, verify=False)
     response.raise_for_status()
 

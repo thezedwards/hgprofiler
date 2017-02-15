@@ -29,7 +29,7 @@ class ResultView(FlaskView):
                         "site_name": "Acme",
                         "site_url": "https://www.acme.com/%s",
                         "username": "bob",
-                        "completed_at": "2017-01-30T16:22:19.826841",
+                        "created_at": "2017-01-30T16:22:19.826841",
                         "status": "Found",
                         "html": "<html><head><title....",
                         "number": "5",
@@ -54,7 +54,7 @@ class ResultView(FlaskView):
         :>json str results[n].site_name: the site name of this result
         :>json str results[n].site_url: the site URL of this result
         :>json str results[n].username: the username for this result
-        :>json str results[n].completed_at: the UTC time of the result
+        :>json str results[n].created_at: the UTC time of the result
             in ISO-8601 format string
         :>json str results[n].status: result status (Found, Not Found, Error)
         :>json str results[n].image_file_id: the file
@@ -102,7 +102,7 @@ class ResultView(FlaskView):
                         "site_name": "Acme",
                         "site_url": "https://www.acme.com/%s",
                         "username": "bob",
-                        "completed_at": "2017-01-30T16:22:19.826841",
+                        "created_at": "2017-01-30T16:22:19.826841",
                         "status": "Found",
                         "html": "<html><head><title....",
                         "number": "5",
@@ -127,7 +127,7 @@ class ResultView(FlaskView):
         :>json str results[n].site_name: the site name of this result
         :>json str results[n].site_url: the site URL of this result
         :>json str results[n].username: the username for this result
-        :>json str results[n].completed_at: the UTC time of the result
+        :>json str results[n].created_at: the UTC time of the result
             in ISO-8601 format string
         :>json str results[n].status: result status (Found, Not Found, Error)
         :>json str results[n].image_file_id: the file ID
@@ -175,7 +175,7 @@ class ResultView(FlaskView):
                         "site_name": "Acme",
                         "site_url": "https://www.acme.com/%s",
                         "username": "bob",
-                        "completed_at": "2017-01-30T16:22:19.826841",
+                        "created_at": "2017-01-30T16:22:19.826841",
                         "status": "Found",
                         "html": "<html><head><title....",
                         "number": "5",
@@ -200,7 +200,7 @@ class ResultView(FlaskView):
         :>json str results[n].site_name: the site name of this result
         :>json str results[n].site_url: the site URL of this result
         :>json str results[n].username: the username for this result
-        :>json str results[n].completed_at: the UTC time of the result
+        :>json str results[n].created_at: the UTC time of the result
             in ISO-8601 format string
         :>json str results[n].status: result status (Found, Not Found, Error)
         :>json str results[n].image_file_id: the file ID
@@ -217,7 +217,7 @@ class ResultView(FlaskView):
         query = g.db.query(Result).filter(
             Result.username == username).order_by(
                 Result.site_name,
-                Result.completed_at.desc()).distinct(Result.site_name)
+                Result.created_at.desc()).distinct(Result.site_name)
 
         total_count = query.count()
 

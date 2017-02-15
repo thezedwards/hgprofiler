@@ -56,7 +56,7 @@ supervisorctl() {
 
 # Execute redis commmands.
 redis() {
-  docker exec ${REDIS_CONTAINER} redis-cli "$@"
+  docker exec -it ${REDIS_CONTAINER} redis-cli "$@"
 }
 
 
