@@ -14,12 +14,15 @@
 <div class="panel panel-default">
   <div class="panel-heading">
     <i class="fa fa-bars"></i>
-    Archived Searches
+    Archived Results
     <i ng-show='loading > 0' class="fa fa-spinner fa-pulse fa-spin"></i>
   </div>
   <div class="panel-body">
 
     <div class="row">
+      <div class="col-sm-12">
+        <p><strong>Archives are kept for 7 days.</strong></p>
+      </div>
       <div class="col-sm-12">
         Showing {{pager.startingAt | number}}-{{pager.endingAt | number}}
         of {{pager.totalResults | number}} archives.
