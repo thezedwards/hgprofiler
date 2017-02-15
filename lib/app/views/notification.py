@@ -1,5 +1,6 @@
 import time
 import json
+from datetime import datetime
 from flask import g, request, Response
 from flask.ext.classy import FlaskView
 from werkzeug.exceptions import BadRequest, NotAcceptable
@@ -46,7 +47,8 @@ class NotificationView(FlaskView):
             if client_id.strip() == '':
                 raise BadRequest('`client-id` query parameter is required.')
 
-            return Response(self._stream(pubsub, client_id), content_type='text/event-stream')
+            return Response(self._stream(pubsub, client_id),
+                            content_type='text/event-stream')
 
         else:
             message = 'This endpoint is only for use with server-sent ' \
@@ -57,12 +59,16 @@ class NotificationView(FlaskView):
         '''
         Stream events.
 
-        If an event has a source_client_id key set, then it is *not* sent to that client.
+        If an event has a source_client_id key set, then it is *not*
+        sent to that client.
         '''
 
         # Prime the stream. (This forces headers to be sent. Otherwise the
         # client will think the stream is not open yet.)
         yield ''
+
+        # Track dummy events sent to keep connection alive.
+        event_time = datetime.now()
 
         # Now send real events from the Redis pubsub channel.
         while True:
@@ -71,6 +77,13 @@ class NotificationView(FlaskView):
 
             message = pubsub.get_message()
 
+            # Send dummy data to keep connection alive
+            time_since_event = datetime.now() - event_time
+
+            if time_since_event.seconds > 60:
+                event_time = datetime.now()
+                yield ''
+
             if message is not None:
                 data = json.loads(message['data'].decode('utf8'))
                 source_client_id = data.pop('source_client_id', '')
@@ -78,6 +91,8 @@ class NotificationView(FlaskView):
                 if source_client_id != client_id:
                     channel = message['channel'].decode('utf8')
                     data_str = json.dumps(data)
+                    event_time = datetime.now()
                     yield 'event: {}\ndata: {}\n\n'.format(channel, data_str)
             else:
+
                 time.sleep(0.2)
