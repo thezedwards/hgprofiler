@@ -42,7 +42,7 @@ class ScrapeException(Exception):
     timeout=60,
     jobdesc='Testing username.'
 )
-def test_site(site_id, tracker_id, request_timeout=10):
+def test_site(site_id, tracker_id, user_id, request_timeout=10):
     """
     Perform postive and negative test of site.
 
@@ -65,6 +65,7 @@ def test_site(site_id, tracker_id, request_timeout=10):
                                    category_id=None,
                                    total=2,
                                    tracker_id=tracker_id + '-1',
+                                   user_id=user_id,
                                    test=True)
 
     result_pos = db_session.query(Result).get(result_pos_id)
@@ -75,6 +76,7 @@ def test_site(site_id, tracker_id, request_timeout=10):
                                    category_id=None,
                                    total=2,
                                    tracker_id=tracker_id + '-2',
+                                   user_id=user_id,
                                    test=True)
 
     result_neg = db_session.query(Result).get(result_neg_id)
@@ -110,7 +112,7 @@ def test_site(site_id, tracker_id, request_timeout=10):
     jobdesc='Checking username.'
 )
 def check_username(username, site_id, category_id, total,
-                   tracker_id, test=False):
+                   tracker_id, user_id, test=False):
     """
     Check if `username` exists on the specified site.
     """
@@ -126,7 +128,9 @@ def check_username(username, site_id, category_id, total,
     splash_result = _splash_username_request(username,
                                              site)
     # Save image file
-    image_file = _save_image(db_session, splash_result,
+    image_file = _save_image(db_session=db_session,
+                             scrape_result=splash_result,
+                             user_id=user_id,
                              censor=site.censor_images)
 
     # Save result to DB.
@@ -138,7 +142,8 @@ def check_username(username, site_id, category_id, total,
         status=splash_result['status'],
         image_file_id=image_file.id,
         username=username,
-        error=splash_result['error']
+        error=splash_result['error'],
+        user_id=user_id
     )
 
     if result.status == 'f':
@@ -166,7 +171,8 @@ def check_username(username, site_id, category_id, total,
                 category_id=category_id,
                 tracker_id=tracker_id,
                 jobdesc=description,
-                timeout=_redis_worker['archive_timeout']
+                timeout=_redis_worker['archive_timeout'],
+                user_id=user_id
             )
 
     worker.finish_job()
@@ -308,14 +314,14 @@ def _check_splash_response(site, splash_response, splash_data):
     return status_ok and match_ok
 
 
-def _save_image(db_session, scrape_result, censor=False):
+def _save_image(db_session, scrape_result, user_id, censor=False):
     """ Save the image returned by Splash to a local file. """
     if scrape_result['error'] is None and censor is True:
         # Get the generic censored image.
         image_file = (
             db_session
             .query(File)
-            .filter(File.name == 'censored.png')
+            .filter(File.name == _censored_image_name)
             .one()
         )
     elif scrape_result['error'] is None:
@@ -324,7 +330,8 @@ def _save_image(db_session, scrape_result, censor=False):
         content = base64.decodestring(scrape_result['image'].encode('utf8'))
         image_file = File(name=image_name,
                           mime='image/jpeg',
-                          content=content)
+                          content=content,
+                          user_id=user_id)
         db_session.add(image_file)
 
         try:
@@ -337,7 +344,7 @@ def _save_image(db_session, scrape_result, censor=False):
         image_file = (
             db_session
             .query(File)
-            .filter(File.name == 'hgprofiler_error.png')
+            .filter(File.name == _error_image_name)
             .one()
         )
 
