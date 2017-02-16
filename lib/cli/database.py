@@ -10,11 +10,16 @@ from sqlalchemy.schema import (DropConstraint,
                                ForeignKeyConstraint,
                                MetaData,
                                Table)
-from app.config import get_path
 import app.database
 import cli
-from model import Base, Configuration, User, Site, File, Category
 import model.user
+
+from app.config import get_path
+from helper.functions import random_password
+from model import Base, Configuration, User, Site, File, Category
+
+
+_system_user = 'system'
 
 
 class DatabaseCli(cli.BaseCli):
@@ -52,8 +57,8 @@ class DatabaseCli(cli.BaseCli):
         ''' Create fixture data. '''
 
         self._create_fixture_configurations(config)
-        self._create_fixture_images(config)
         self._create_fixture_users(config)
+        self._create_fixture_images(config)
         self._create_fixture_sites(config)
         self._create_fixture_categories(config)
 
@@ -76,6 +81,7 @@ class DatabaseCli(cli.BaseCli):
         '''
 
         session = app.database.get_session(self._db)
+        user = session.query(User).filter(User.email == _system_user).one()
 
         # Generic error image
         image_name = config.get('images', 'error_image')
@@ -84,8 +90,11 @@ class DatabaseCli(cli.BaseCli):
 
         with open(img_path, 'rb') as img:
             img_data = img.read()
-            image_file = File(name=image_name, mime='image/png',
-                              content=img_data)
+            image_file = File(name=image_name,
+                              mime='image/png',
+                              content=img_data,
+                              user_id=user.id,
+                              access_type='shared')
             image_file.chown(data_stat.st_uid, data_stat.st_gid)
             session.add(image_file)
 
@@ -96,8 +105,12 @@ class DatabaseCli(cli.BaseCli):
 
         with open(img_path, 'rb') as img:
             img_data = img.read()
-            image_file = File(name=image_name, mime='image/png',
-                              content=img_data)
+            image_file = File(name=image_name,
+                              mime='image/png',
+                              content=img_data,
+                              user_id=user.id,
+                              access_type='shared')
+
             image_file.chown(data_stat.st_uid, data_stat.st_gid)
             session.add(image_file)
 
@@ -114,7 +127,7 @@ class DatabaseCli(cli.BaseCli):
         except:
             raise ValueError('Configuration value password_hash.rounds must'
                              ' be an integer: %s' % hash_rounds)
-
+        # Admin
         admin = User('admin')
         admin.agency = 'Profiler'
         admin.name = 'Administrator'
@@ -125,6 +138,18 @@ class DatabaseCli(cli.BaseCli):
             hash_rounds
         )
         session.add(admin)
+
+        # System user
+        scheduler = User(_system_user)
+        scheduler.agency = 'Profiler'
+        scheduler.name = 'System User'
+        scheduler.is_scheduler = False
+        scheduler.password_hash = model.user.hash_password(
+            random_password(),
+            hash_algorithm,
+            hash_rounds
+        )
+        session.add(scheduler)
         session.commit()
 
     def _create_fixture_sites(self, config):

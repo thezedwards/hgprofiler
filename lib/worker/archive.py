@@ -53,7 +53,7 @@ def results_csv_string(results):
     return output.getvalue()
 
 
-def create_zip(filename, results):
+def create_zip(filename, results, user_id):
     '''
     Generate zip archive of results and return the file id.
 
@@ -84,7 +84,8 @@ def create_zip(filename, results):
                     mime='application/zip',
                     zip_archive=True,
                     zip_files=files,
-                    zip_str_files=str_files)
+                    zip_str_files=str_files,
+                    user_id=user_id)
 
     db_session.add(zip_file)
 
@@ -101,7 +102,7 @@ def create_zip(filename, results):
     timeout=60,
     jobdesc='Archiving results.'
 )
-def create_archive(username, category_id, tracker_id):
+def create_archive(username, category_id, tracker_id, user_id):
     """
     Archive summary of results in the database and store
     a zip archive in the data directory.
@@ -125,7 +126,7 @@ def create_archive(username, category_id, tracker_id):
 
     # Generate zip file
     filename = re.sub('[\W_]+', '', username)  # Strip non-alphanumeric char
-    zip_file_id = create_zip(filename, results)
+    zip_file_id = create_zip(filename, results, user_id)
 
     for result in results:
         if result.status == 'e':
@@ -142,7 +143,8 @@ def create_archive(username, category_id, tracker_id):
                       found_count=found_count,
                       not_found_count=not_found_count,
                       error_count=error_count,
-                      zip_file_id=zip_file_id)
+                      zip_file_id=zip_file_id,
+                      user_id=user_id)
 
     # Write to db
     db_session.add(archive)

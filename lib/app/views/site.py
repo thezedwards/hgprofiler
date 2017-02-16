@@ -558,7 +558,8 @@ class SiteView(FlaskView):
                     worker.scrape.test_site.enqueue(
                         site_id=site.id,
                         tracker_id=tracker_id,
-                        jobdesc=description
+                        jobdesc=description,
+                        user_id=g.user.id,
                     )
 
         response = jsonify(tracker_ids=tracker_ids)
@@ -647,7 +648,8 @@ class SiteView(FlaskView):
                 worker.scrape.test_site.enqueue(
                     site_id=site.id,
                     tracker_id=tracker_id,
-                    jobdesc=description
+                    jobdesc=description,
+                    user_id=g.user.id,
                 )
 
         response = jsonify(tracker_ids=tracker_ids)

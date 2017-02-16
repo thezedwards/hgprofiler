@@ -4,8 +4,9 @@ import hashlib
 import os
 import zipfile
 
-from sqlalchemy import Column, Integer, String
+from sqlalchemy import Column, ForeignKey, Integer, String
 from sqlalchemy.dialects.postgresql import BYTEA
+from sqlalchemy_utils import ChoiceType
 
 from helper.functions import get_path, random_string
 from model import Base
@@ -38,24 +39,39 @@ class File(Base):
 
     __tablename__ = 'file'
 
+    ACCESS_TYPES = [
+        ('private', 'Private'),
+        ('shared', 'Shared'),
+    ]
+
     id = Column(Integer, primary_key=True)
     name = Column(String(255))
     mime = Column(String(255))
     hash = Column(BYTEA(32))  # sha256
+    access_type = Column(ChoiceType(ACCESS_TYPES),
+                         nullable=False,
+                         default='private')
+    user_id = Column(Integer,
+                     ForeignKey('user.id', name='fk_file_user'),
+                     nullable=False)
 
     def __init__(self,
                  name,
                  mime,
+                 user_id,
                  content=None,
                  zip_archive=False,
                  zip_files=[],
-                 zip_str_files=[]):
+                 zip_str_files=[],
+                 access_type='private'):
         '''
         Constructor.
         '''
 
         self.name = name
         self.mime = mime
+        self.user_id = user_id
+        self.access_type = access_type
 
         # Create dummy content to use in hash if there is
         # no content (zip archives)
@@ -144,5 +160,6 @@ class File(Base):
             'name': self.name,
             'mime': self.mime,
             'path': self.relpath(),
+            'access_type': self.access_type,
             'url': '/api/files/{}'.format(self.id)
         }

@@ -31,6 +31,9 @@ class Archive(Base):
     error_count = Column(Integer, nullable=False)
     zip_file_id = Column(Integer, ForeignKey('file.id', name='fk_zip_file'))
     created_at = Column(DateTime, nullable=False, default=datetime.utcnow)
+    user_id = Column(Integer,
+                     ForeignKey('user.id', name='fk_archive_user'),
+                     nullable=False)
 
     def __init__(self,
                  tracker_id,
@@ -40,7 +43,8 @@ class Archive(Base):
                  found_count,
                  not_found_count,
                  error_count,
-                 zip_file_id):
+                 zip_file_id,
+                 user_id=None):
         ''' Constructor. '''
 
         self.tracker_id = tracker_id
@@ -51,6 +55,7 @@ class Archive(Base):
         self.not_found_count = not_found_count
         self.error_count = error_count
         self.zip_file_id = zip_file_id
+        self.user_id = user_id
 
     def as_dict(self):
         ''' Return dictionary representation of this archive. '''
@@ -67,5 +72,6 @@ class Archive(Base):
             'not_found_count': self.not_found_count,
             'error_count': self.error_count,
             'zip_file_url': '/api/files/{}'.format(self.zip_file_id),
-            'zip_file_id': self.zip_file_id
+            'zip_file_id': self.zip_file_id,
+            'user_id': self.user_id
         }

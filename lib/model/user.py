@@ -6,6 +6,7 @@ import re
 import bcrypt
 from sqlalchemy import Boolean, Column, DateTime, Integer, String
 from sqlalchemy.dialects.postgresql import BYTEA
+from sqlalchemy.orm import relationship
 
 from helper.functions import get_path
 from model import Base
@@ -28,6 +29,9 @@ class User(Base):
     created = Column(DateTime, default=datetime.now, nullable=False)
     modified = Column(DateTime, default=datetime.now,
                       onupdate=datetime.now, nullable=False)
+    results = relationship('Result', cascade="all, delete-orphan")
+    archives = relationship('Archive', cascade="all, delete-orphan")
+    files = relationship('File', cascade="all, delete-orphan")
 
     DEFAULT_THUMB = None
 

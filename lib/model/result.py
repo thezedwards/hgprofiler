@@ -45,6 +45,9 @@ class Result(Base):
     html = Column(Text, nullable=True)
     username = Column(String(255), nullable=False)
     created_at = Column(DateTime, nullable=False, default=datetime.utcnow)
+    user_id = Column(Integer,
+                     ForeignKey('user.id', name='fk_result_user'),
+                     nullable=False)
 
     def __init__(self,
                  tracker_id,
@@ -53,6 +56,7 @@ class Result(Base):
                  site_id,
                  status,
                  username,
+                 user_id=None,
                  image_file_id=None,
                  thumb=None,
                  error=None,
@@ -69,6 +73,7 @@ class Result(Base):
         self.error = error
         self.html = html
         self.username = username
+        self.user_id = user_id
 
     def as_dict(self):
         ''' Return dictionary representation of this result. '''
@@ -94,4 +99,5 @@ class Result(Base):
             'status': self.status.code,
             'tracker_id': self.tracker_id,
             'username': self.username,
+            'user_id': self.user_id,
         }

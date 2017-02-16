@@ -151,7 +151,8 @@ class UsernameView(FlaskView):
                     tracker_id=tracker_id,
                     test=test,
                     jobdesc=description,
-                    timeout=_redis_worker['username_timeout']
+                    timeout=_redis_worker['username_timeout'],
+                    user_id=g.user.id
                 )
                 jobs.append({
                     'id': job.id,
