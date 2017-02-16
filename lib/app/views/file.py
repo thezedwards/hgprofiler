@@ -1,7 +1,7 @@
 import os
 from flask import g, send_from_directory, jsonify
 from flask.ext.classy import FlaskView
-from werkzeug.exceptions import NotFound, BadRequest
+from werkzeug.exceptions import NotFound, BadRequest, Unauthorized
 
 import app.config
 from app.authorization import login_required, admin_required
@@ -30,6 +30,11 @@ class FileView(FlaskView):
 
         if file_ is None:
             raise NotFound('No file exists with id={}'.format(id_))
+
+        # Restrict access to files according to their access_type and owner.
+        # access_type can be Private ('p') or shared ('s').
+        if file_.access_type == 'private' and file_.user_id != g.user.id:
+            raise Unauthorized('You are not authorized to view this file.')
 
         if file_.mime == 'application/zip':
             return send_from_directory(
@@ -61,6 +66,10 @@ class FileView(FlaskView):
         if file_ is None:
             raise NotFound("File '%s' does not exist." % id_)
 
+        # Restrict access to files according to their access_type and owner.
+        # access_type can be Private ('p') or shared ('s').
+        if file_.access_type == 'p' and file_.user_id != g.user.id:
+            raise Unauthorized('You are not authorized to view this file.')
 
         # Get filesystem path
         relpath = file_.relpath()
@@ -77,8 +86,6 @@ class FileView(FlaskView):
         # Delete file from filesystem
         if os.path.isfile(file_object_path):
             os.unlink(file_object_path)
-
-
 
         message = 'File id "{}" deleted'.format(id_)
         response = jsonify(message=message)
