@@ -1,12 +1,12 @@
 from datetime import datetime
 from functools import wraps
-import urllib.parse
 
 import dateutil.parser
 from flask import g, request
-from werkzeug.exceptions import BadRequest, Forbidden, Unauthorized
+from werkzeug.exceptions import Forbidden, Unauthorized
 
 from model import User
+
 
 def login_optional(original_function):
     '''
@@ -23,6 +23,7 @@ def login_optional(original_function):
 
     return wrapper
 
+
 def login_required(original_function):
     '''
     A decorator that requires a user to be logged in.
@@ -38,6 +39,7 @@ def login_required(original_function):
         return original_function(*args, **kwargs)
 
     return wrapper
+
 
 def admin_required(original_function):
     '''
@@ -61,6 +63,7 @@ def admin_required(original_function):
         return original_function(*args, **kwargs)
 
     return wrapper
+
 
 def _get_user_from_request(required=True):
     '''
@@ -94,7 +97,7 @@ def _get_user_from_request(required=True):
         if expires < datetime.now():
             raise ValueError()
 
-        user = g.db.query(User).filter(User.id==user_id).one()
+        user = g.db.query(User).filter(User.id == user_id).one()
 
     except:
         if required:
