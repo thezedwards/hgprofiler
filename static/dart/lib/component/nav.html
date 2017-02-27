@@ -34,9 +34,6 @@
           <li>
             <a href='/user/{{auth.currentUser.id}}'>My Profile</a>
           </li>
-          <li>
-            <a href='/user'>User Directory</a>
-          </li>
           <li class="divider"></li>
           <li ng-if='auth.isAdmin()'>
             <a href='/admin'>Admin Overview</a>
@@ -49,6 +46,9 @@
           </li>
           <li ng-if='auth.isAdmin()'>
             <a href='/admin/proxies'>Proxies</a>
+          </li>
+          <li ng-if='auth.isAdmin()'>
+            <a href='/user'>User Directory</a>
           </li>
           <li class="divider" ng-if='auth.isAdmin()'></li>
           <li><a ng-click='auth.logOut()'>Log Out</a></li>
