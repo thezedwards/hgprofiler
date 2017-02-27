@@ -26,6 +26,8 @@ class ResultView(FlaskView):
                     {
                         "id": 1,
                         "tracker_id": '2298d96a-653d-42f2-b6d3-73ff337d51ce',
+                        "user_id": 1,
+                        "site_id": 100,
                         "site_name": "Acme",
                         "site_url": "https://www.acme.com/%s",
                         "username": "bob",
@@ -51,6 +53,8 @@ class ResultView(FlaskView):
         :>json list results: a list of result objects
         :>json int results[n].id: the unique id of this result
         :>json str results[n].tracker_id: the tracker_id of this result
+        :>json str results[n].user_id: the id of owner of this result
+        :>json str results[n].site_id: the ID of the result site
         :>json str results[n].site_name: the site name of this result
         :>json str results[n].site_url: the site URL of this result
         :>json str results[n].username: the username for this result
@@ -68,7 +72,7 @@ class ResultView(FlaskView):
 
         page, results_per_page = get_paging_arguments(request.args)
 
-        query = g.db.query(Result)
+        query = g.db.query(Result).filter(Result.user_id == g.user.id)
 
         total_count = query.count()
 
@@ -99,6 +103,8 @@ class ResultView(FlaskView):
                     {
                         "id": 1,
                         "tracker_id": '2298d96a-653d-42f2-b6d3-73ff337d51ce',
+                        "user_id": 1,
+                        "site_id": 100,
                         "site_name": "Acme",
                         "site_url": "https://www.acme.com/%s",
                         "username": "bob",
@@ -124,6 +130,8 @@ class ResultView(FlaskView):
         :>json list results: a list of result objects
         :>json int results[n].id: the unique id of this result
         :>json str results[n].tracker_id: the tracker_id of this result
+        :>json str results[n].user_id: the ID of the owner of this result
+        :>json str results[n].site_id: the ID of the result site
         :>json str results[n].site_name: the site name of this result
         :>json str results[n].site_url: the site URL of this result
         :>json str results[n].username: the username for this result
@@ -141,7 +149,9 @@ class ResultView(FlaskView):
 
         page, results_per_page = get_paging_arguments(request.args)
 
-        query = g.db.query(Result).filter(Result.tracker_id == tracker_id)
+        query = g.db.query(Result).filter(
+            Result.tracker_id == tracker_id).filter(
+                Result.user_id == g.user.id)
 
         total_count = query.count()
 
@@ -172,6 +182,8 @@ class ResultView(FlaskView):
                     {
                         "id": 1,
                         "tracker_id": '2298d96a-653d-42f2-b6d3-73ff337d51ce',
+                        "user_id": 1,
+                        "site_id": 100,
                         "site_name": "Acme",
                         "site_url": "https://www.acme.com/%s",
                         "username": "bob",
@@ -197,6 +209,8 @@ class ResultView(FlaskView):
         :>json list results: a list of result objects
         :>json int results[n].id: the unique id of this result
         :>json str results[n].tracker_id: the tracker_id of this result
+        :>json str results[n].user_id: the ID of the owner of this result
+        :>json str results[n].site_id: the ID of the result site
         :>json str results[n].site_name: the site name of this result
         :>json str results[n].site_url: the site URL of this result
         :>json str results[n].username: the username for this result
@@ -215,9 +229,11 @@ class ResultView(FlaskView):
         page, results_per_page = get_paging_arguments(request.args)
 
         query = g.db.query(Result).filter(
-            Result.username == username).order_by(
-                Result.site_name,
-                Result.created_at.desc()).distinct(Result.site_name)
+            Result.username == username).filter(
+                Result.user_id == g.user.id).order_by(
+                    Result.site_name,
+                    Result.created_at.desc()).distinct(
+                        Result.site_name)
 
         total_count = query.count()
 
