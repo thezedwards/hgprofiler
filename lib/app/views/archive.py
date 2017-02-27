@@ -30,6 +30,7 @@ class ArchiveView(FlaskView):
                     {
                         "id": 1,
                         "job_id": '2298d96a-653d-42f2-b6d3-73ff337d51ce',
+                        "user_id": 1,
                         "username": "bob",
                         "date": "",
                         "site_count": 166,
@@ -55,6 +56,8 @@ class ArchiveView(FlaskView):
         :>json list archives: a list of result archive objects
         :>json str archives[n].job_id: the job_id of this archive
         :>json int archives[n].id: the unique id of this archive
+        :>json str archives[n].user_id: the user_id of the owner of
+            this archive
         :>json str archives[n].username: the archive username
         :>json str archives[n].date: the archive creation date
         :>json str archives[n].site_count: the number of site
@@ -79,7 +82,7 @@ class ArchiveView(FlaskView):
         page, results_per_page = get_paging_arguments(request.args)
         username = request.args.get('username', '')
 
-        query = g.db.query(Archive)
+        query = g.db.query(Archive).filter(Archive.user_id == g.user.id)
 
         if username:
             query = query.filter(Archive.username == username)
@@ -123,7 +126,8 @@ class ArchiveView(FlaskView):
         '''
         # Get site.
         id_ = get_int_arg('id_', id_)
-        archive = g.db.query(Archive).filter(Archive.id == id_).first()
+        archive = g.db.query(Archive).filter(Archive.id == id_).filter(
+            Archive.user_id == g.user.id).first()
 
         if archive is None:
             raise NotFound("Archive '%s' does not exist." % id_)
