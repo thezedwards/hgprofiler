@@ -1,8 +1,8 @@
 import base64
 from io import BytesIO
 
-from flask import g, json, jsonify, request, send_from_directory
-from flask.ext.classy import FlaskView, route
+from flask import g, jsonify, request
+from flask.ext.classy import FlaskView
 from PIL import Image
 import phonenumbers
 from sqlalchemy import func
@@ -10,7 +10,7 @@ from sqlalchemy.exc import IntegrityError
 from werkzeug.exceptions import BadRequest, Conflict, Forbidden, NotFound
 
 from app.authorization import admin_required, login_required
-from app.rest import get_int_arg, get_paging_arguments, url_for
+from app.rest import get_int_arg, get_paging_arguments
 from model import User
 from model.user import hash_password, valid_password
 
@@ -23,6 +23,9 @@ class UserView(FlaskView):
     def get(self, id_):
         '''
         Get the application user identified by `id`.
+
+        Normal users may request only their own ID.
+        Admin users can request any ID.
 
         **Example Response**
 
@@ -69,11 +72,15 @@ class UserView(FlaskView):
         id_ = get_int_arg('id_', id_)
         user = g.db.query(User).filter(User.id == id_).first()
 
+        if not g.user.is_admin and g.user.id != user.id:
+            raise Forbidden('You may only view your own profile.')
+
         if user is None:
             raise NotFound("User '%d' does not exist." % id_)
 
         return jsonify(**self._user_dict(user))
 
+    @admin_required
     def index(self):
         '''
         Return an array of data about application users.
@@ -362,10 +369,10 @@ class UserView(FlaskView):
                 img_data = base64.b64decode(request_json['thumb'])
                 img = Image.open(BytesIO(img_data))
 
-                if img.format != 'PNG':# or img.size != (32,32):
+                if img.format != 'PNG':  # or img.size != (32,32):
                     raise ValueError()
             except:
-                raise BadRequest('Thumbnail image must be 32x32 px,' \
+                raise BadRequest('Thumbnail image must be 32x32 px,'
                                  ' PNG format, base64 encoded.')
 
             user.thumb = img_data
@@ -374,7 +381,8 @@ class UserView(FlaskView):
             password = request_json['password'].strip()
 
             if not valid_password(password):
-                raise BadRequest('Password does not meet complexity requirements.')
+                raise BadRequest('Password does not meet complexity '
+                                 'requirements.')
 
             user.password_hash = hash_password(
                 password,
