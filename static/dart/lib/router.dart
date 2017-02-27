@@ -61,16 +61,6 @@ class HGProfilerRouteInitializer implements Function {
                 preEnter: auth.requireLogin,
                 viewHtml: '<username></username>'
             ),
-            'category_list':ngRoute(
-                path: '/category',
-                preEnter: auth.requireLogin,
-                viewHtml: '<category-list></category-list>'
-            ),
-            'archive_list':ngRoute(
-                path: '/archive',
-                preEnter: auth.requireLogin,
-                viewHtml: '<archive></archive>'
-            ),
             'user_list': ngRoute(
                 path: '/user',
                 preEnter: auth.requireLogin,
@@ -81,6 +71,16 @@ class HGProfilerRouteInitializer implements Function {
                 path: '/user/:id',
                 preEnter: auth.requireLogin,
                 viewHtml: '<user></user>'
+            ),
+            'category_list':ngRoute(
+                path: '/category',
+                preEnter: auth.requireLogin,
+                viewHtml: '<category-list></category-list>'
+            ),
+            'archive_list':ngRoute(
+                path: '/archive',
+                preEnter: auth.requireLogin,
+                viewHtml: '<archive></archive>'
             ),
 
         });
