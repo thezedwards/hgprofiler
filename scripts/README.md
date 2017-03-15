@@ -40,6 +40,7 @@ LOG_FILE=None
 PROFILER_APP_HOST=https://localhost
 LOG_LEVEL=warning
 ```
+[More about application config files](http://click.pocoo.org/5/utils/#finding-application-folders)
 
 There is a helper function for obtaining the authentication token:
 
@@ -48,9 +49,6 @@ $ python command_line.py get_token
 Username:
 ...
 ```
-
-[More about application config files](http://click.pocoo.org/5/utils/#finding-application-folders)
-
 
 ### Usage
 
