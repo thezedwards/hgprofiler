@@ -1,9 +1,10 @@
-# Scripts This directory contains a number of utility scripts for Profiler.
+# Scripts 
+This directory contains a number of utility scripts for Profiler.
 
 
 ## command_line.py
-This is a command line client for interacting with the Profiler API.
-It allows for batch submitting lists of usernames and obtaining the results
+A command line client for interacting with the Profiler API.
+Allows batch submission of lists of usernames and extraction of results
 as csv or jsonlines.
 
 ### Installation
@@ -48,11 +49,11 @@ Username:
 ...
 ```
 
-
-Read more: http://click.pocoo.org/5/utils/#finding-application-folders
+[More about application config files](http://click.pocoo.org/5/utils/#finding-application-folders)
 
 
 ### Usage
+
 ```
 $ python command_line.py
 Usage: command_line.py [OPTIONS] COMMAND [ARGS]...
@@ -87,3 +88,4 @@ Commands:
   submit_usernames  Submit list of usernames to search for.
 
 ```
+The client provides help for all all commands with the -h or --help options.
