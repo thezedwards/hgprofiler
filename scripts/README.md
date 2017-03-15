@@ -45,7 +45,7 @@ LOG_LEVEL=warning
 There is a helper function for obtaining the authentication token:
 
 ```
-$ python command_line.py get_token
+$ python command_line.py --app_host=https://localhost get_token
 Username:
 ...
 ```
