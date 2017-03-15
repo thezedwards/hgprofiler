@@ -22,7 +22,7 @@ ToDo
 ====
 
 1. There is no handling for when token expires. An error will be thrown
-with no information on how to fix :-(
+with no information on how to fix.
 
 """
 import click
@@ -31,13 +31,13 @@ import csv
 import datetime
 import getpass
 import json
+import jsonlines
 import logging
 import math
 import os
 import requests
 import sys
 import time
-import urllib
 from pygments import highlight, lexers, formatters
 
 # ToDo - remove and provide proper instructions:
@@ -325,31 +325,28 @@ def submit_usernames(config,
 @click.option('--ignore-missing',
               is_flag=True,
               help='Ignore missing results.')
+@click.option('--output-format',
+              '-f',
+              type=click.Choice(['csv',
+                                 'json']),
+              default='csv')
 @pass_config
 def get_results(config,
                 input_file,
                 output_file,
                 interval,
-                ignore_missing):
+                ignore_missing,
+                output_format):
     """
     \b
     Return results for list of usernames.
 
-    Each username requires minimum 2 API calls:
-
-        1. Fetch archive for the username
-        2. Fetch the results for the archive job ID
-
-    Further API calls are required to fetch more than one page
-    of results, e.g. if there are 160 results for a username, this
-    rquires 3 request in total.
-
-    Updates to Profiler should allow querying of the result
-    endpoint by username.
 
     :param input_file (file): csv file containing 1 username per line.
     :param output_file (file): output file csv or jsonlines.
     :param interval (int): interval in seconds between API requests.
+    :param ignore_missing (bool): ignore failed requests.
+    :param output_format (str): output format (csv, json).
     """
     if not config.settings['profiler_api_token']:
         click.secho('You need an API token for this. Run "get_token" '
@@ -364,17 +361,28 @@ def get_results(config,
     else:
         click.echo('[*] Extracted {} usernames.'.format(len(usernames)))
 
-    writer = csv.writer(output_file)
+    if output_format == 'csv':
+        writer = csv.writer(output_file)
+        writer.writerow(['Username',
+                         'Site Name',
+                         'Site URL',
+                         'Status',
+                         'Error'])
+    elif output_format == 'json':
+        writer = jsonlines.Writer(output_file)
+    else:
+        raise TypeError('{} is not supported'.format(output_format))
 
     with click.progressbar(usernames,
                            label='Getting username results: ') as bar:
         start = datetime.datetime.now()
         for username in bar:
             # Get results for username
-            archive_url = os.path.join(config.api_url,
-                                       'archive/')
-            archive_url = archive_url + 'username={}'.format(username)
-            response = requests.get(archive_url,
+            results_url = os.path.join(config.api_host,
+                                       'results/')
+            username_url = os.path.join(results_url,
+                                        'username/{}'.format(username))
+            response = requests.get(username_url,
                                     headers=config.headers,
                                     verify=False)
             time.sleep(interval)
@@ -386,15 +394,10 @@ def get_results(config,
                 response.raise_for_status()
 
             # Parse results
-            archives = response.json().get('archives', [])
+            results = response.json().get('results', [])
 
-            for archive in archives:
-                results = get_job_results(config.settings['profiler_app_host'],
-                                          config.headers,
-                                          archive['tracker_id'],
-                                          interval)
-
-                for result in results:
+            for result in results:
+                if output_format == 'csv':
                     row = [username,
                            result['site_name'],
                            result['site_url'],
@@ -403,15 +406,21 @@ def get_results(config,
                            ]
                     # Write to output file
                     writer.writerow(row)
+                elif output_format == 'json':
+                    writer.write(result)
 
-                output_file.flush()
-                time.sleep(interval)
+            output_file.flush()
+            time.sleep(interval)
 
+    # Cleanup
     if input_file:
         input_file.close()
 
     if output_file:
         output_file.close()
+
+    if output_format == 'json' and writer:
+        writer.close()
 
     end = datetime.datetime.now()
     elapsed = end - start
