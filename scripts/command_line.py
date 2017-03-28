@@ -37,6 +37,7 @@ import math
 import os
 import requests
 import sys
+import urllib
 import time
 from pygments import highlight, lexers, formatters
 
@@ -100,35 +101,50 @@ class Config(object):
         if os.path.exists(self.config_path):
             self.settings = self._read_config()
         else:
-            click.secho('You are not authenticated.', fg='red')
+            os.makedirs(self.config_dir, exist_ok=True)
             self.settings = {
                 'log_level': 'warning',
                 'profiler_app_host': None,
                 'profiler_api_token': None,
                 'log_file': None,
             }
-            os.makedirs(self.config_dir, exist_ok=True)
-            self.settings['profiler_app_host'] = input('App host:')
-            username = input('Username:')
-            password = getpass.getpass('Password:')
-            auth_url = os.path.join(self.settings['profiler_app_host'],
-                                    '/api/authentication/')
-            payload = {'email': username, 'password': password}
-            response = requests.post(auth_url, json=payload, verify=False)
-            response.raise_for_status()
-
-            try:
-                self.settings['profiler_api_token'] = response.json()['token']
-            except KeyError:
-                raise ProfilerError('Authentication failed.')
-
             with open(self.config_path, 'w+') as f:
                 f.write('[DEFAULT]\n')
                 for setting, value in self.settings.items():
-                    f.write('{}n'.format(setting, value))
+                    f.write('{}={}\n'.format(setting, value if value else ''))
 
                 click.echo('Created configuration file: {}'
                            .format(self.config_path))
+        # else:
+        #     click.secho('You are not authenticated.', fg='red')
+        #     self.settings = {
+        #         'log_level': 'warning',
+        #         'profiler_app_host': None,
+        #         'profiler_api_token': None,
+        #         'log_file': None,
+        #     }
+        #     os.makedirs(self.config_dir, exist_ok=True)
+        #     self.settings['profiler_app_host'] = input('App host:')
+        #     username = input('Username:')
+        #     password = getpass.getpass('Password:')
+        #     auth_url = urllib.parse.urljoin(self.settings['profiler_app_host'],
+        #                             '/api/authentication/')
+        #     payload = {'email': username, 'password': password}
+        #     response = requests.post(auth_url, json=payload, verify=False)
+        #     response.raise_for_status()
+
+        #     try:
+        #         self.settings['profiler_api_token'] = response.json()['token']
+        #     except KeyError:
+        #         raise ProfilerError('Authentication failed.')
+
+        #     with open(self.config_path, 'w+') as f:
+        #         f.write('[DEFAULT]\n')
+        #         for setting, value in self.settings.items():
+        #             f.write('{}n'.format(setting, value))
+
+        #         click.echo('Created configuration file: {}'
+        #                    .format(self.config_path))
 
     def _read_config(self):
         cfg = os.path.join(click.get_app_dir(APP_NAME), 'config.ini')
@@ -196,7 +212,7 @@ def cli(config, app_host, token, log_file, log_level):
     if app_host:
         config.settings['profiler_app_host'] = app_host
 
-    config.api_host = os.path.join(config.settings['profiler_app_host'], 'api')
+    config.api_host = urllib.parse.urljoin(config.settings['profiler_app_host'], 'api/')
     config.log_file = log_file
     config.log_level = config.log_levels[log_level]
 
@@ -218,7 +234,7 @@ def get_token(config, username, password):
     Obtain an API token.
     """
     # auth_url = config.settings['profiler_app_host'] + '/api/authentication/'
-    auth_url = os.path.join(config.api_host, 'authentication/')
+    auth_url = urllib.parse.urljoin(config.api_host, 'authentication/')
     payload = {'email': username, 'password': password}
     response = requests.post(auth_url, json=payload, verify=False)
     response.raise_for_status()
@@ -284,8 +300,8 @@ def submit_usernames(config,
         raise ProfilerError('No usernames found.')
     else:
         click.echo('[*] Extracted {} usernames.'.format(len(usernames)))
-
-    username_url = os.path.join(config.api_host, 'username/')
+    print(config.api_host)
+    username_url = urllib.parse.urljoin(config.api_host, 'username/')
     responses = []
 
     with click.progressbar(length=len(usernames),
@@ -378,9 +394,9 @@ def get_results(config,
         start = datetime.datetime.now()
         for username in bar:
             # Get results for username
-            results_url = os.path.join(config.api_host,
+            results_url = urllib.parse.urljoin(config.api_host,
                                        'results/')
-            username_url = os.path.join(results_url,
+            username_url = urllib.parse.urljoin(results_url,
                                         'username/{}'.format(username))
             response = requests.get(username_url,
                                     headers=config.headers,
@@ -481,7 +497,7 @@ def get_zip_results(config,
         start = datetime.datetime.now()
         for username in bar:
             # Get results for username
-            archive_url = os.path.join(config.api_url,
+            archive_url = urllib.parse.urljoin(config.api_url,
                                        'archive/')
             archive_url = archive_url + 'username={}'.format(username)
             response = requests.get(archive_url,
@@ -540,7 +556,7 @@ def get(config, resource, pretty):
     if not config.settings.get('profiler_api_token', None):
         raise ProfilerError('"--token" is required for this function.')
 
-    url = os.path.join(config.api_host, resource)
+    url = urllib.parse.urljoin(config.api_host, resource)
     response = requests.get(url, headers=config.headers, verify=False)
     response.raise_for_status()
 
@@ -548,7 +564,9 @@ def get(config, resource, pretty):
         if pretty:
             print_json(response.content.decode('utf-8'))
         else:
-            print(json.dumps(response.json()))
+            # print(json.dumps(response.json()))
+            print(response.text)
+
     except Exception:
         raise
 
