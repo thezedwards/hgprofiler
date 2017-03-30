@@ -8,7 +8,7 @@ Allows batch submission of lists of usernames and extraction of results
 as csv or jsonlines.
 
 ### Installation
-
+Requires Python 3.
 There are a few python requirements:
 
 ```
