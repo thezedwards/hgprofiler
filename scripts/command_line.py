@@ -455,7 +455,11 @@ def get_results(config,
                 type=click.File(),
                 required=True)
 @click.argument('output-dir',
-                type=click.Path(dir_okay=True, allow_dash=True),
+                type=click.Path(dir_okay=True,
+                                exists=True,
+                                writable=True,
+                                resolve_path=True,
+                                allow_dash=True),
                 required=True)
 @click.option('--interval',
               type=click.FLOAT,
@@ -497,9 +501,9 @@ def get_zip_results(config,
         start = datetime.datetime.now()
         for username in bar:
             # Get results for username
-            archive_url = urllib.parse.urljoin(config.api_url,
-                                       'archive/')
-            archive_url = archive_url + 'username={}'.format(username)
+            archive_url = urllib.parse.urljoin(config.api_host,
+                                       'archives/')
+            archive_url = archive_url + '?username={}'.format(username)
             response = requests.get(archive_url,
                                     headers=config.headers,
                                     verify=False)
@@ -518,13 +522,15 @@ def get_zip_results(config,
                 filename = '{}-{}.zip' \
                            .format(username,
                                    archive['date'])
-                response = requests.get(archive['zip_url'],
+                zip_url = urllib.parse.urljoin(config.settings['profiler_app_host'],
+                                               archive['zip_file_url'])
+                response = requests.get(zip_url,
                                         headers=config.headers,
                                         verify=False)
 
                 response.raise_for_status()
 
-                with open(os.join(output_dir, filename), 'wb') as f:
+                with open(os.path.join(output_dir, filename), 'wb') as f:
                     f.write(response.content)
 
                 time.sleep(interval)
