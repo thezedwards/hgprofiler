@@ -13,6 +13,9 @@ class SchedulerCli(cli.BaseCli):
 
     def _run(self, args, config):
         """ Main entry point. """
+        # Connect to database.
+        database_config = dict(config.items('database'))
+        self._db = app.database.get_engine(database_config, super_user=True)
         session = app.database.get_session(self._db)
         self.user = session.query(User).filter(User.email == 'system').one()
 
