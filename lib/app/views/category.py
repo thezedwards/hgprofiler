@@ -260,9 +260,16 @@ class CategoryView(FlaskView):
             data['url-for'] = url_for('CategoryView:get', id_=category.id)
             categories.append(data)
 
+        # Add total sites meta information.
+        # Useful for calculating cost when no category
+        # is selected.
+        query = g.db.query(Site).filter(Site.valid == True)
+        total_valid_sites = query.count()
+
         return jsonify(
             categories=categories,
-            total_count=total_count
+            total_count=total_count,
+            total_valid_sites=total_valid_sites
         )
 
     def put(self, id_):
