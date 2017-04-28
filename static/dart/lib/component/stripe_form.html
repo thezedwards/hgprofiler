@@ -1,0 +1,139 @@
+<button class="btn btn-success btn-lg"
+        ng-click="payButtonClickHandler()"
+        type='button'>
+  <i class="fa fa-credit-card" aria-hidden="true"></i> Pay with card
+</button>
+
+<!-- Stripe payment modal. -->
+<div class='modal fade' id='stripe' role='dialog'>
+  <!-- Start dialog -->
+  <div class='modal-dialog'>
+    <!-- Start content -->
+    <div class='modal-content'>
+
+      <!-- Start header -->
+      <div class='modal-header success'>
+        <!-- Start title -->
+        <h4 class='modal-title'>
+          Buy credits <i class="fa fa-cc-stripe pull-right" aria-hidden="true"></i>
+        </h4>
+        <!-- End title -->
+      </div>
+      <!-- End header -->
+
+      <!-- Start body -->
+      <div class='modal-body'>
+        <p><strong>{{description}}<strong></p>
+        <form class="form-horizontal" action="/charge" method="post" id="payment-form">
+          <div class="form-group row">
+            <label class="col-sm-2" for="card-element">
+              Credit or debit card
+            </label>
+            <div class="col-sm-7" id="card-element">
+              <!-- a Stripe Element will be inserted here. -->
+            </div>
+            <div class="col-sm-3">
+              <button id="pay-button" class="btn btn-info pull-right">
+                Pay <i class="fa fa-usd" id="pay-icon"></i>{{dollarAmount}}</button>
+            </div>
+          </div>
+        </form>
+
+        <!-- Used to display Element errors -->
+        <div class="row">
+          <div class="col-sm-12">
+            <div id="stripe-errors"></div>
+          </div>
+        </div>
+
+        <!-- Used to display payment confirmation -->
+        <div class="row" ng-show="complete == true">
+          <div class="col-sm-12">
+            <div
+              id="confirmation"
+              class="alert alert-success col-sm-12"
+              role="alert">
+              Your payment was successfull!
+            </div>
+          </div>
+        </div>
+
+      </div>
+      <!-- End body -->
+
+      <!-- Start footer -->
+      <div class='modal-footer'>
+              <object id="card-svg" class="pull-left" data="/static/img/card-brands.svg" type="image/svg+xml"></object>
+        <button type='button' class='btn btn-default pull-right' data-dismiss='modal'>
+          Cancel
+        </button>
+      </div>
+      <!-- End footer -->
+    </div>
+    <!-- End content -->
+  </div>
+  <!-- End dialog -->
+</div>
+<!-- End modal -->
+
+
+<script>
+  /*
+  Stripe elements javascript
+  https://stripe.com/docs/elements
+
+  Mount Stripe card elements, validate input, and pass Stripe token to Dart
+  for payment processing.
+
+  Two functions are imported from Dart using package:js context:
+
+  1. setState(state, [errorMsg]) - for setting button states and displaying error messages
+  2. stripeTokenHandler(token) - the callback to process payment once the Stripe token is recieved.
+  */
+  /*
+  function loadStripe() {
+
+    var stripe = Stripe('pk_test_4XxInS26VHCH0cXvlrYX58W5');
+    var elements = stripe.elements();
+    // Custom styling can be passed to options when creating an Element.
+    var style = {
+      base: {
+        // Add your base input styles here. For example:
+        fontSize: '16px',
+        lineHeight: '24px'
+      }
+    };
+
+    // Create an instance of the card Element
+    var card = elements.create('card', {style: style});
+
+    // Add an instance of the card Element into the `card-element` <div>
+    card.mount('#card-element');
+    card.addEventListener('change', function(event) {
+      if (event.error) {
+        setState('error', event.error.message);
+      } else {
+        setState('default');
+      }
+    });
+
+    // Create a token or display an error the form is submitted.
+    var form = document.getElementById('payment-form');
+    var inputs = form.getElementsByTagName('input');
+    form.addEventListener('submit', function(event) {
+      event.preventDefault();
+
+      stripe.createToken(card).then(function(result) {
+        if (result.error) {
+          // Inform the user if there was an error
+          setState('error', result.error.message);
+        } else {
+          // Call Dart function to process payment
+          stripeTokenHandler(result.token);
+          setState('processing');
+        }
+      });
+    });
+  };
+  */
+</script>
