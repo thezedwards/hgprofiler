@@ -34,6 +34,9 @@
           <li>
             <a href='/user/{{auth.currentUser.id}}'>My Profile</a>
           </li>
+          <li>
+            <a href='/user/{{auth.currentUser.id}}/credit'>Credit</a>
+          </li>
           <li class="divider"></li>
           <li ng-if='auth.isAdmin()'>
             <a href='/admin'>Admin Overview</a>
@@ -55,5 +58,11 @@
         </ul>
       </li>
     </ul>
+    <div style="color: white;" id="credit-container" class="pull-right">
+      Credits: <strong>{{auth.currentUser.credits}}</strong>
+      <a href="/user/{{auth.currentUser.id}}/credits" class="btn btn-sm btn-success">
+        Add
+      </a>
+    </div>
   </div>
 </div>
