@@ -4,6 +4,7 @@ class User {
 
     String agency;
     DateTime created;
+    int credits;
     String email;
     bool isAdmin;
     String location;
@@ -26,6 +27,7 @@ class User {
         this.name = json['name'];
         this.phone = json['phone'];
         this.phoneE164 = json['phone_e164'];
+        this.credits = json['credits'];
         this.thumb = json['thumb'];
     }
 }
