@@ -5,12 +5,13 @@ class Category {
     int id;
     List<Site> sites;
     String name;
+    int cost;
 
     // Errors related to creating or loading this profile.
     String error;
 
     Category(String name, List<Site> sites) {
-        this.name = name; 
+        this.name = name;
         this.sites = sites;
     }
 
@@ -21,5 +22,6 @@ class Category {
             json['sites'].length,
             (index) => new Site.fromJson(json['sites'][index])
         );
+        this.cost = json['cost'];
     }
 }
