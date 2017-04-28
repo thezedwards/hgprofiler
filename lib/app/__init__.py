@@ -246,6 +246,10 @@ def init_views(flask_app, config):
     from app.views.configuration import ConfigurationView
     ConfigurationView.register(flask_app, route_base='/api/configuration/')
 
+    from app.views.configuration import CheckoutConfigurationView
+    CheckoutConfigurationView.register(flask_app,
+                                       route_base='/api/configuration/checkout/')
+
     from app.views.proxies import ProxiesView
     ProxiesView.register(flask_app, route_base='/api/proxies/')
 
@@ -277,6 +281,9 @@ def init_views(flask_app, config):
     from app.views.result import ResultView
     ResultView.register(flask_app, route_base='/api/results/')
 
+    from app.views.checkout import CheckoutView
+    CheckoutView.register(flask_app, route_base='/api/checkout/')
+
     # Make sure to import the Angular view last so that it will match
     # all remaining routes.
     import app.views.angular
@@ -305,7 +312,17 @@ def init_webassets(flask_app, config):
     assets.register("javascript", Bundle(
         'js/d3.js',
         'js/markdown.js',
+        'js/stripe_loader.js',
         dart_root + '/packages/web_components/dart_support.js',
         dart_root + '/packages/browser/dart.js',
         output='combined/combined.js'
     ))
+
+    assets.register("css", Bundle(
+        "css/csshake.min.css",
+        filters="cssutils",
+        output="combined/custom.css",
+        depends="css/*.css"
+    ))
+
+
