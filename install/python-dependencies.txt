@@ -11,5 +11,6 @@ pycurl
 requests
 rq>=0.7.1
 schedule
+stripe
 SQLAlchemy
 sqlalchemy_utils
