@@ -13,7 +13,7 @@ import worker
 import worker.archive
 from app.queue import scrape_queue, queueable
 from helper.functions import random_string
-from model import File, Result, Site, Proxy
+from model import File, Result, Site, Proxy, User
 from model.configuration import get_config
 
 USER_AGENT = 'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:40.0) '\
@@ -124,6 +124,9 @@ def check_username(username, site_id, category_id, total,
     # Get site
     site = db_session.query(Site).get(site_id)
 
+    # Get user
+    user = db_session.query(User).get(user_id)
+
     # Check site for username
     splash_result = _splash_username_request(username,
                                              site)
@@ -161,6 +164,14 @@ def check_username(username, site_id, category_id, total,
         # result_dict['image_name'] = image_file.name
         result_dict['total'] = total
         redis.publish('result', json.dumps(result_dict))
+
+        # Subtract credit costs for non-error
+        # results
+        if result.status != 'e':
+            user.credits -= 1
+            redis.publish('user', json.dumps(user.as_dict()))
+            db_session.commit()
+
 
         # If this username search is complete, then queue an archive job.
         if current == total:
