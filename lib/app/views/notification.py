@@ -25,6 +25,7 @@ class NotificationView(FlaskView):
         'site',
         'worker',
         'proxy',
+        'user',
     )
 
     __should_quit = False
