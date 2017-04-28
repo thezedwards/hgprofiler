@@ -1,8 +1,11 @@
 import 'dart:html';
+import 'dart:convert';
 
 import 'package:angular/angular.dart';
 
 import 'package:hgprofiler/authentication.dart';
+import 'package:hgprofiler/sse.dart';
+import 'package:hgprofiler/model/user.dart';
 
 /// The top navigation bar.
 @Component(
@@ -17,8 +20,10 @@ class NavComponent {
     String _secretWord = 'DEVMODE';
     int _index = 0;
 
+    final SseController _sse;
+    final RouteProvider _rp;
     /// Constructor.
-    NavComponent(this.auth) {
+    NavComponent(this.auth, this._sse, this._rp) {
         if (window.localStorage['devmode'] != null) {
             showDevFeatures = window.localStorage['devmode'] == 'true';
         } else {
@@ -48,5 +53,18 @@ class NavComponent {
                 this._index = 0;
             }
         });
+
+        // Add event listeners...
+        this._sse.onUser.listen(this._userListener);
+    }
+
+    // User SSE event listener
+    void _userListener(Event e) {
+        Map user_data = JSON.decode(e.data);
+        User user = new User.fromJson(user_data);
+        if (user.id == this.auth.currentUser.id) {
+            // Update current user credits
+            this.auth.currentUser.credits = user.credits;
+        }
     }
 }
