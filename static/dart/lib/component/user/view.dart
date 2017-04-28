@@ -23,6 +23,7 @@ class UserComponent {
     List<Breadcrumb> crumbs;
     String displayName;
     String error;
+    int credits;
     int id;
     int loading = 0;
     String message;
@@ -56,6 +57,7 @@ class UserComponent {
             'name': document.getElementById('name').value,
             'location': document.getElementById('location').value,
             'phone': document.getElementById('phone').value,
+            'credits': document.getElementById('credits').value,
             'thumb': user.thumb,
         };
 
@@ -152,6 +154,7 @@ class UserComponent {
             .get('/api/users/${this.id}', needsAuth: true)
             .then((response) {
                 this.user = new User.fromJson(response.data);
+                this.credits = user.credits;
 
                 displayName = this.user.name != null
                             ? this.user.name
@@ -159,6 +162,9 @@ class UserComponent {
 
                 this.crumbs[this.crumbs.length-1] = new Breadcrumb(displayName);
                 this._ts.title = displayName;
+            })
+            .catchError((response) {
+                this.error = response.data['message'];
             })
             .whenComplete(() {
                 this.loading--;
