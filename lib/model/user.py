@@ -32,6 +32,7 @@ class User(Base):
     results = relationship('Result', cascade="all, delete-orphan")
     archives = relationship('Archive', cascade="all, delete-orphan")
     files = relationship('File', cascade="all, delete-orphan")
+    credits = Column(Integer, default=0, nullable=False)
 
     DEFAULT_THUMB = None
 
@@ -65,6 +66,23 @@ class User(Base):
         ''' Get user thumbnail as a data URI. '''
 
         return 'data:image/png;base64,%s' % self.thumb_data()
+
+    def as_dict(self):
+        """
+        Return dictionary representation of this user.
+        """
+        return {
+            'id': self.id,
+            'email': self.email,
+            'name': self.name,
+            'agency': self.agency,
+            'location': self.location,
+            'phone': self.phone,
+            'is_admin': self.is_admin,
+            'created': self.created.isoformat(),
+            'modified': self.modified.isoformat(),
+            'credits': self.credits,
+        }
 
 
 def check_password(password, stored_hash):
