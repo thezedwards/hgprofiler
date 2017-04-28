@@ -29,10 +29,12 @@ import 'package:hgprofiler/component/modal.dart';
 import 'package:hgprofiler/component/nav.dart';
 import 'package:hgprofiler/component/pager.dart';
 import 'package:hgprofiler/component/progress_bar.dart';
+import 'package:hgprofiler/component/stripe_form.dart';
 import 'package:hgprofiler/component/site.dart';
 import 'package:hgprofiler/component/sort.dart';
 import 'package:hgprofiler/component/title.dart';
 import 'package:hgprofiler/component/username.dart';
+import 'package:hgprofiler/component/user/credit_view.dart';
 import 'package:hgprofiler/component/user/list.dart';
 import 'package:hgprofiler/component/user/view.dart';
 import 'package:hgprofiler/decorator/current_route.dart';
@@ -90,9 +92,11 @@ class HGProfilerApplication extends Module {
         bind(SortComponent);
         bind(SparklineComponent);
         bind(SseController);
+        bind(StripeFormComponent);
         bind(TitleService);
         bind(UserComponent);
         bind(UserListComponent);
+        bind(UserCreditComponent);
         bind(UsernameComponent);
     }
 }
