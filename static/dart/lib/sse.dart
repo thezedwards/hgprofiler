@@ -14,6 +14,7 @@ class SseController {
     Stream<Event> onResult;
     Stream<Event> onSite;
     Stream<Event> onWorker;
+    Stream<Event> onUser;
 
     AuthenticationController _auth;
     EventSource _eventSource;
@@ -35,6 +36,7 @@ class SseController {
         this.onResult = this._eventSource.on['result'];
         this.onSite = this._eventSource.on['site'];
         this.onWorker = this._eventSource.on['worker'];
+        this.onUser = this._eventSource.on['user'];
     }
 }
 
