@@ -54,4 +54,12 @@ class Category(Base):
             'id': self.id,
             'name': self.name,
             'sites': sorted_sites,
+            'cost': self.cost()
         }
+
+    def cost(self):
+        """
+        Return credit cost of category.
+        Each valid site costs 1 credit.
+        """
+        return len([site for site in self.sites if site.valid])
