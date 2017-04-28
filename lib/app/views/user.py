@@ -13,6 +13,7 @@ from app.authorization import admin_required, login_required
 from app.rest import get_int_arg, get_paging_arguments
 from model import User
 from model.user import hash_password, valid_password
+from model.configuration import get_config
 
 
 class UserView(FlaskView):
@@ -42,7 +43,8 @@ class UserView(FlaskView):
                 "name": "Lt. John Doe",
                 "phone": "+12025551234",
                 "thumb": "iVBORw0KGgoAAAANS...",
-                "url": "https://quickpin/api/user/2029"
+                "credits": 200,
+                "url": "https://quickpin/api/user/2029",
             }
 
         :<header Content-Type: application/json
@@ -62,6 +64,7 @@ class UserView(FlaskView):
         :>json str phone: phone number
         :>json str phone_e164: phone number in E.164 format
         :>json str thumb: PNG thumbnail for this user, base64 encoded
+        :>json int credits: the user credits
         :>json str url: url to view data about this user
 
         :status 200: ok
@@ -85,6 +88,8 @@ class UserView(FlaskView):
         '''
         Return an array of data about application users.
 
+        For admin only.
+
         **Example Response**
 
         .. sourcecode:: json
@@ -103,6 +108,7 @@ class UserView(FlaskView):
                         "name": "Lt. John Doe",
                         "phone": "+12025551234",
                         "thumb": "iVBORw0KGgo…",
+                        "credits": 200,
                         "url": "https://quickpin/api/user/2029"
                     },
                     ...
@@ -132,7 +138,8 @@ class UserView(FlaskView):
         :>json str users[n].name: user's full name, optionally including title
             or other salutation information (default: null)
         :>json str users[n].phone: phone number
-        :>json str thumb: PNG thumbnail for this user, base64 encoded
+        :>json str users[n].thumb: PNG thumbnail for this user, base64 encoded
+        :>json int users[n].credits: the user credits
         :>json str users[n].url: url to view data about this user
 
         :status 200: ok
@@ -180,6 +187,7 @@ class UserView(FlaskView):
                 "name": null,
                 "phone": null,
                 "thumb": null,
+                "credits": 0,
                 "url": "https://quickpin/api/user/2029"
             }
 
@@ -202,6 +210,7 @@ class UserView(FlaskView):
         :>json str phone: phone number
         :>json str phone_e164: phone number in E.164 format
         :>json str thumb: PNG thumbnail for this user, base64 encoded
+        :>json int credits: the user credits
         :>json str url: url to view data about this user
 
         :status 200: ok
@@ -259,6 +268,7 @@ class UserView(FlaskView):
                 "name": "Lt. John Doe",
                 "password": "superSECRET123",
                 "phone": "+12025551234",
+                "credits": 10,
                 "thumb": "iVBORw0KGgoAAAANS..."
             }
 
@@ -277,23 +287,25 @@ class UserView(FlaskView):
                 "name": "Lt. John Doe",
                 "phone": "202-555-1234",
                 "thumb": "iVBORw0KGgoAAAANS...",
+                "credits": 10,
                 "url": "https://quickpin/api/user/2029"
             }
 
         :<header Content-Type: application/json
         :<header X-Auth: the client's auth token
-        :>json str agency: the name of the organization/agency that this person
-            is affiliated with
-        :>json str email: e-mail address
-        :>json bool is_admin: true if this user should have admin privileges,
-            false otherwise (this field can only be modified by an admin user)
-        :>json str location: location name, e.g. city or state (default: null)
-        :>json str name: user's full name, optionally including title or other
-            salutation information (default: null)
-        :>json str password: new password, must be >=8 characters, mixed case,
-            and contain numbers
-        :>json str phone: phone number (any reasonable format is okay)
-        :>json str thumb: PNG thumbnail for this user, base64 encoded
+        :<json str agency: the name of the organization/agency that this person
+           is affiliated with
+        :<json str email: e-mail address
+        :<json bool is_admin: true if this user should have admin privileges,
+           false otherwise (this field can only be modified by an admin user)
+        :<json str location: location name, e.g. city or state (default: null)
+        :<json str name: user's full name, optionally including title or other
+           salutation information (default: null)
+        :<json str password: new password, must be >=8 characters, mixed case,
+           and contain numbers
+        :<json str phone: phone number (any reasonable format is okay)
+        :<json str thumb: PNG thumbnail for this user, base64 encoded
+        :<json int credits: the user credits
 
         :>header Content-Type: application/json
         :>json str agency: the name of the organization/agency that this person
@@ -309,6 +321,7 @@ class UserView(FlaskView):
         :>json str phone: phone number
         :>json str phone_e164: phone number in E.164 format
         :>json str thumb: PNG thumbnail for this user, base64 encoded
+        :>json int credits: the user credits
         :>json str url: url to view data about this user
 
         :status 200: ok
@@ -331,6 +344,15 @@ class UserView(FlaskView):
                 raise BadRequest('You may not modify your own role.')
 
             user.is_admin = request_json['is_admin']
+
+        if 'credits' in request_json:
+            if not g.user.is_admin:
+                raise Forbidden('Only admins can change user credits.')
+
+            try:
+                user.credits = int(request_json['credits'])
+            except ValueError:
+                raise ValueError('Credits must be an integer number.')
 
         self._update_string_field(request_json, 'agency', user, 'agency')
         self._update_string_field(request_json, 'location', user, 'location')
@@ -418,6 +440,7 @@ class UserView(FlaskView):
             'name': user.name,
             'phone_e164': user.phone,
             'phone': pretty_phone,
+            'credits': user.credits,
             'thumb': user.thumb_data(),
         }
 
