@@ -16,8 +16,8 @@ class ApiIndexView(FlaskView):
         .. sourcecode:: json
 
             {
-                "authentication_url": "https://quickpin/api/authentication/",
-                "dark_user_url": "https://quickpin/api/search/"
+                "authentication_url": "https://profiler/api/authentication/",
+                "username_search": "https://profiler/api/username/"
             }
 
         :<header Content-Type: application/json
@@ -29,5 +29,5 @@ class ApiIndexView(FlaskView):
 
         return jsonify(
             authentication_url=url_for('AuthenticationView:index'),
-            search_url=url_for('SearchView:index')
+            search_url=url_for('UsernameView:index')
         )
