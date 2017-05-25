@@ -246,10 +246,6 @@ def init_views(flask_app, config):
     from app.views.configuration import ConfigurationView
     ConfigurationView.register(flask_app, route_base='/api/configuration/')
 
-    from app.views.configuration import CheckoutConfigurationView
-    CheckoutConfigurationView.register(flask_app,
-                                       route_base='/api/configuration/checkout/')
-
     from app.views.proxies import ProxiesView
     ProxiesView.register(flask_app, route_base='/api/proxies/')
 
