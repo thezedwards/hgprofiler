@@ -19,6 +19,7 @@
             <i class='fa fa-envelope-o fa-fw'></i>
           </div>
           <input ng-model='email'
+                 id='email'
                  class='form-control'
                  type='text'
                  placeholder='E-mail Address'>
@@ -29,12 +30,14 @@
             <i class='fa fa-key fa-fw'></i>
           </div>
           <input ng-model='password'
+                 id='password'
                  class='form-control'
                  type='password'
                  placeholder='Password'>
         </div>
 
         <button class='btn btn-primary btn-lg'
+                id='log-in'
                 ng-disabled='email.isEmpty || password.isEmpty || buttonBusy'
                 ng-click='login()'>
           <i ng-show='buttonBusy' class="fa fa-spinner fa-pulse fa-spin"></i>
