@@ -1,71 +1,52 @@
-
-<!--
-<div class="jumbotron">
-  <h1>
-    <i class='fa fa-lg fa-users'></i>  Profiler</h1>
-  <p>
-    Username search
-  </p>
+<div id="search-well" class="well well-lg">
+  <form role="form" class="form-inline search-username-form">
+      <div class="form-group col-sm-4 col-sm-offset-2 col-md-offset-3">
+            <input type='search'
+                   class="form-control"
+                   ng-model='query'
+                   ng-keypress='handleSearchKeypress($event)'
+                   placeholder='Enter username'>
+            </input>
+      </div>
+      <div class="form-group col-sm-1 col-md-2 col-lg-1 button">
+            <button class='btn btn-primary form-control'
+                    data-toggle="modal"
+                    data-target="#confirm"
+                    id="search"
+                    type='button'>
+              <i class='fa fa-search'></i> Search
+            </button>
+      </div>
+      <div class="form-group col-sm-2 col-md-2 col-lg-2 button">
+            <div role="group" class='btn-group'>
+              <button type='button'
+                      class='btn btn-primary dropdown-toggle'
+                      data-toggle='dropdown'
+                      aria-expanded='false'>
+                    {{categoryDescription}} <span class='caret'></span>
+              </button>
+              <ul class='dropdown-menu sort-by' role='menu'>
+                <li>
+                  <a ng-click='setCategory(null)'>
+                    <i class='fa fa-check' ng-show='selectedCategory == null'></i>
+                    All Sites
+                  </a>
+                </li>
+                <li class='divider'></li>
+                <li ng-repeat='category in categories'>
+                  <a ng-click='setCategory(category)'>
+                    <i class='fa fa-check' ng-show='category == selectedCategory'></i>
+                    {{category.name}}
+                  </a>
+                </li>
+              </ul>
+            </div>
+      </div>
+  </form>
 </div>
--->
-
-<!--
-<div class="row">
-  <div class="col-sm-12">
-    -->
-    <div id="search-well" class="well well-lg">
-      <form role="form" class="form-inline search-username-form">
-          <div class="form-group col-sm-4 col-sm-offset-2 col-md-offset-3">
-                <input type='search'
-                       class="form-control"
-                       ng-model='query'
-                       ng-keypress='handleSearchKeypress($event)'
-                       placeholder='Enter username'>
-                </input>
-          </div>
-          <div class="form-group col-sm-1 col-md-2 col-lg-1 button">
-                <button class='btn btn-primary form-control'
-                        data-toggle="modal"
-                        data-target="#confirm"
-                        type='button'>
-                  <i class='fa fa-search'></i> Search
-                </button>
-          </div>
-          <div class="form-group col-sm-2 col-md-2 col-lg-2 button">
-                <div role="group" class='btn-group'>
-                  <button type='button'
-                          class='btn btn-primary dropdown-toggle'
-                          data-toggle='dropdown'
-                          aria-expanded='false'>
-                        {{categoryDescription}} <span class='caret'></span>
-                  </button>
-                  <ul class='dropdown-menu sort-by' role='menu'>
-                    <li>
-                      <a ng-click='setCategory(null)'>
-                        <i class='fa fa-check' ng-show='selectedCategory == null'></i>
-                        All Sites
-                      </a>
-                    </li>
-                    <li class='divider'></li>
-                    <li ng-repeat='category in categories'>
-                      <a ng-click='setCategory(category)'>
-                        <i class='fa fa-check' ng-show='category == selectedCategory'></i>
-                        {{category.name}}
-                      </a>
-                    </li>
-                  </ul>
-                </div>
-          </div>
-      </form>
-    </div>
-    <!--
-  </div>
-</div>
--->
 
 <div class='alert alert-danger' role='alert' ng-hide='error == null'>
-  <i class='fa fa-exclamation-triangle fa-3x pull-left'></i>
-  <p><strong>{{error}}</strong></p>
+  <p>{{error}}</p>
   <div class='clear'></div>
 </div>
 
@@ -80,7 +61,7 @@
 
       <div ng-show="results.length > 0">
         <div class="row">
-          <div class="col-sm-6">
+          <div id="searching" class="col-sm-6">
             Searched {{results.length}} sites
             ({{(results.length/totalResults) * 100 | number:0}}%)
             for "{{username}}"
@@ -100,7 +81,7 @@
   <div class="col-sm-12">
     <div class="panel panel-default">
       <div class="panel-body">
-        <p>Username "{{username}}" found on {{found}} of {{results.length}} sites.<span class="pull-right">Cost: {{cost}} credits</span></p>
+        <p id="complete">Username "{{username}}" found on {{found}} of {{results.length}} sites.<span class="pull-right">Cost: {{cost}} credits</span></p>
       </div>
     </div>
   </div>
@@ -236,7 +217,7 @@
         </div>
       </div>
       <div class='modal-footer {{screenshotClass}}'>
-        <button type='button' class='btn btn-info pull-right' ng-click='confirmSearch()'>
+        <button type='button' id='search-confirm' class='btn btn-info pull-right' ng-click='confirmSearch()'>
           Yes
         </button>
         <button type='button' class='btn btn-default pull-right' data-dismiss='modal'>
