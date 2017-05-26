@@ -305,6 +305,7 @@ def init_webassets(flask_app, config):
     assets.register("javascript", Bundle(
         'js/d3.js',
         'js/markdown.js',
+        'js/analytics.js',
         dart_root + '/packages/web_components/dart_support.js',
         dart_root + '/packages/browser/dart.js',
         output='combined/combined.js'
