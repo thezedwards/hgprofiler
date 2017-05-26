@@ -13,14 +13,21 @@ class SchedulerCli(cli.BaseCli):
 
     def _run(self, args, config):
         """ Main entry point. """
+        # Connect to database.
+        database_config = dict(config.items('database'))
+        self._db = app.database.get_engine(database_config, super_user=True)
         session = app.database.get_session(self._db)
+
+        # Get system user
         self.user = session.query(User).filter(User.email == 'system').one()
 
         self._logger.info('Scheduler started.')
 
+        # Schedule jobs
         schedule.every().day.at('00:01').do(self._delete_expired_archives)
         schedule.every().day.at('00:02').do(self._delete_expired_results)
 
+        # Process jobs
         while True:
             try:
                 schedule.run_pending()
