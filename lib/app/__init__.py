@@ -310,3 +310,8 @@ def init_webassets(flask_app, config):
         dart_root + '/packages/browser/dart.js',
         output='combined/combined.js'
     ))
+
+    assets.register("footer-javascript", Bundle(
+        'js/analytics-footer.js',
+        output='combined/footer-combined.js'
+    ))
