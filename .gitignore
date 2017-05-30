@@ -9,3 +9,6 @@ nohup.out
 pubspec.lock
 TODO*
 static/combined/bootstrap.css
+static/combined/footer-combined.js
+static/combined/combined.js
+static/combined/custom.css
