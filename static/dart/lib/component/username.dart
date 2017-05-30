@@ -3,6 +3,9 @@ import 'dart:convert';
 import 'dart:html';
 
 import 'package:angular/angular.dart';
+import 'package:bootjack/bootjack.dart';
+import 'package:dquery/dquery.dart';
+
 import 'package:hgprofiler/authentication.dart';
 import 'package:hgprofiler/component/breadcrumbs.dart';
 import 'package:hgprofiler/component/pager.dart';
@@ -26,7 +29,9 @@ class UsernameComponent implements ShadowRootAware {
     List<Breadcrumb> crumbs = [
         new Breadcrumb('Profiler', '/'),
     ];
+    Map<int> categoryCost = new Map<int>();
     int currentPage;
+    int cost;
     String error;
     int found;
     String filter;
@@ -46,6 +51,7 @@ class UsernameComponent implements ShadowRootAware {
     String screenshotClass;
     int totalResults;
     int totalCategories;
+    int totalSitesCost;
     String username;
     String sort, sortDescription;
     List<String> urls;
@@ -94,6 +100,7 @@ class UsernameComponent implements ShadowRootAware {
         this.submittingUsername = true;
         this.awaitingResults = true;
         this.results = new List<Result>();
+        this.cost = 0;
         this.totalResults = 0;
         this.found = 0;
         this.username = this.query;
@@ -119,6 +126,21 @@ class UsernameComponent implements ShadowRootAware {
                 this.error = response.data['message'];
             })
             .whenComplete(() {this.submittingUsername = false;});
+    }
+
+    /// Confirm search username
+    void confirmSearch() {
+        String selector = '#confirm';
+        DivElement modalDiv = this._element.querySelector(selector);
+        Modal.wire(modalDiv).hide();
+        this.searchUsername();
+    }
+
+    /// Show confirmation modal
+    void showConfirmModal() {
+        String selector = '#confirm';
+        DivElement modalDiv = this._element.querySelector(selector);
+        Modal.wire(modalDiv).show();
     }
 
     void setCategory(Category category) {
@@ -189,6 +211,7 @@ class UsernameComponent implements ShadowRootAware {
                         this.categories.add(new Category.fromJson(category));
                     }
                 });
+                this.totalSitesCost = response.data['total_valid_sites'];
                 this.loading--;
                 completer.complete();
             })
@@ -228,6 +251,9 @@ class UsernameComponent implements ShadowRootAware {
             if(result.status == 'f') {
                 this.found++;
             }
+            if (result.status != 'e') {
+                this.cost++;
+            }
             if(this.totalResults == this.results.length) {
                 new Timer(new Duration(seconds:1), () {
                     this.awaitingResults = false;
@@ -247,8 +273,10 @@ class UsernameComponent implements ShadowRootAware {
 
     /// Handle a keypress in the search input field.
     void handleSearchKeypress(event) {
+        window.console.debug(event.keyCode);
+        window.console.debug(KeyCode.ENTER);
         if (event.keyCode == KeyCode.ENTER) {
-            this.searchUsername();
+            this.showConfirmModal();
         }
     }
 

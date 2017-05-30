@@ -1,0 +1,148 @@
+<breadcrumbs crumbs=crumbs></breadcrumbs>
+
+
+<div ng-repeat='message in messages'>
+  <div class='alert alert-{{message["type"]}}' role='alert'>
+    <button ng-click="messages.remove(message)" class="close" aria-label="Close">
+      <span aria-hidden="true">&times;</span>
+    </button>
+    <i class='fa fa-check-circle fa-2x pull-left' ng-show="message['icon']"></i>
+    {{message["text"]}}
+  </div>
+  <div class='clear'></div>
+</div>
+
+<!-- start panel -->
+<div class="panel panel-default">
+  <div class="panel-heading">
+    <i class="fa fa-bars"></i>
+     Credit
+    <i ng-show="loading > 0" class="fa fa-spinner fa-pulse fa-spin"></i>
+  </div>
+  <!-- start panel body -->
+  <div class="panel-body">
+    <!-- start row -->
+    <div class="row">
+      <!-- start col -->
+      <div class="col-sm-12">
+        <!--
+        <h4 id="title">Pay as you go</h4>
+        -->
+      </div>
+      <!-- end col -->
+    </div>
+    <!-- end row -->
+
+    <!-- start row -->
+    <div class="row">
+      <!-- start col -->
+      <div class="col-sm-6">
+        <!-- start container div -->
+        <div class="container">
+          <div id="current-credits" class="current-value">
+            {{friendlyNumber(user.credits)}}
+          </div>
+          <div class="value-text">Remaining credits</div>
+        <!-- end container div -->
+        </div>
+      </div>
+      <!-- end col -->
+
+      <!-- start col -->
+      <div class="col-sm-6">
+
+        <!-- start container div -->
+        <div class="container">
+
+          <!-- start row -->
+          <div class="row">
+            <div class="col-sm-12">
+              <div class="value">+{{friendlyNumber(credits.value)}}</div>
+            </div>
+          </div>
+          <!-- end row -->
+
+          <!-- start row -->
+          <div class="row">
+            <div class="col-sm-12">
+              <input
+                id="slider1"
+                type="range"
+                min="{{minCredits}}"
+                max="100000"
+                step="{{minCredits}}"
+                ng-model="credits.value"/>
+            </div>
+          </div>
+          <!-- end row -->
+
+          <!-- start row -->
+          <div class="row">
+            <div class="col-sm-12">
+              <div class='value-text'>
+                I want <strong>{{friendlyNumber(credits.value)}}</strong> credits
+                for <strong>${{dollarCost(costs[credits.value])}}</strong>
+              </div>
+            </div>
+          </div>
+          <!-- end row -->
+
+          <!-- start row -->
+          <div class="row">
+            <div class="col-sm-12">
+              <strong>{{(costs[credits.value]/credits.value).toStringAsFixed(2)}}</strong> cents per credit
+            </div>
+          </div>
+          <!-- end row -->
+
+          <!-- start row -->
+          <div class="row">
+            <div class="col-sm-12">
+              <stripe-form
+                data-key="{{stripePublicKey}}"
+                data-name="Buy credits"
+                data-description="Buy {{credits.value}} credits for ${{dollarCost(costs[credits.value])}}"
+                data-currency="usd"
+                data-user-id="{{user.id}}"
+                data-dollar-amount="{{dollarCost(costs[credits.value])}}"
+                data-amount="{{costs[credits.value]}}">
+              </stripe-form>
+            </div>
+          </div>
+          <!-- end row -->
+
+        </div>
+        <!-- end container div -->
+
+      </div>
+      <!-- end col -->
+
+    </div>
+    <!-- end row -->
+
+    <div class="tip">
+      <span class="success">{{totalSearches}} username searches</span> across all sites ({{totalSites}})
+    </div>
+    <div class="text-center">
+      <p><strong>1 site request = 1 credit</strong></p>
+      <p>Searching for 1 username across 100 sites would cost 100 credits</p>
+      <p><em>Requests resulting in errors are not charged</em></p>
+    </div>
+
+  </div>
+  <!-- end panel body -->
+
+</div>
+<!-- end panel -->
+
+<div class="panel panel-default">
+  <div class="panel-heading">
+    <i class="fa fa-bars"></i>
+    Feedback
+    <i ng-show="loading > 0" class="fa fa-spinner fa-pulse fa-spin"></i>
+  </div>
+  <div class="panel-body">
+    Add 10 searches to your account for filling in our feedback survey.
+    <button class="btn btn-info pull-right">Take survey</button>
+  </div>
+</div>

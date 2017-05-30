@@ -25,7 +25,7 @@
     </ul>
     <ul class="nav navbar-nav navbar-right">
       <li class='dropdown'>
-        <a class='dropdown-toggle user' data-toggle='dropdown'>
+        <a id='user' class='dropdown-toggle user' data-toggle='dropdown'>
           <img ng-src='data:image/png;base64,{{auth.currentUser.thumb}}'>
           {{auth.currentUser.email}}
           <b class='caret'></b>
@@ -33,6 +33,9 @@
         <ul class='dropdown-menu'>
           <li>
             <a href='/user/{{auth.currentUser.id}}'>My Profile</a>
+          </li>
+          <li>
+            <a href='/user/{{auth.currentUser.id}}/credit'>Credit</a>
           </li>
           <li class="divider"></li>
           <li ng-if='auth.isAdmin()'>
@@ -55,5 +58,11 @@
         </ul>
       </li>
     </ul>
+    <div style="color: white;" id="credit-container" class="pull-right">
+      Credits: <strong>{{auth.currentUser.credits}}</strong>
+      <a href="/user/{{auth.currentUser.id}}/credits" class="btn btn-sm btn-success">
+        Add
+      </a>
+    </div>
   </div>
 </div>

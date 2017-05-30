@@ -86,6 +86,8 @@ def _get_user_from_request(required=True):
         xauth = request.headers['X-Auth']
     elif 'xauth' in request.args:
         xauth = request.args['xauth']
+    elif 'xauth' in request.form:
+        xauth = request.form['xauth']
     else:
         xauth = None
 

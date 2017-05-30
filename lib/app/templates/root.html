@@ -8,9 +8,13 @@
     [% assets "less" -%]
     <link rel="stylesheet" type="text/css" href="[[ASSET_URL]]">
     [% endassets -%]
+    [% assets "css" -%]
+    <link rel="stylesheet" type="text/css" href="[[ASSET_URL]]">
+    [% endassets -%]
     [% assets "dart" -%]
     <script type="application/dart" src="[[ASSET_URL]]"></script>
     [% endassets -%]
+    <script src="https://js.stripe.com/v3/"></script>
     [% assets "javascript" -%]
     <script type="text/javascript" src="[[ASSET_URL]]"></script>
     [% endassets -%]

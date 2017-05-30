@@ -126,6 +126,8 @@ class UsernameView(FlaskView):
                 valid_sites.append(site)
 
         # sites = sites.filter(Site.valid == True).all() # noqa
+        if len(valid_sites) > g.user.credits:
+            raise BadRequest('Insufficient credits.')
 
         if len(valid_sites) == 0:
             raise NotFound('No valid sites to check')

@@ -67,6 +67,11 @@ class HGProfilerRouteInitializer implements Function {
                 dontLeaveOnParamChanges: true,
                 viewHtml: '<user-list></user-list>'
             ),
+            'user_credit':ngRoute(
+                path: '/user/:id/credit',
+                preEnter: auth.requireLogin,
+                viewHtml: '<user-credit></user-credit>'
+            ),
             'user_view':ngRoute(
                 path: '/user/:id',
                 preEnter: auth.requireLogin,
