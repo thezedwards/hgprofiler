@@ -101,7 +101,8 @@
               <stripe-form
                 data-key="{{stripePublicKey}}"
                 data-name="Buy credits"
-                data-description="Buy {{credits.value}} credits for ${{dollarCost(costs[credits.value])}}"
+                data-volume={{credits.value}}
+                data-item='credits'
                 data-currency="usd"
                 data-user-id="{{user.id}}"
                 data-dollar-amount="{{dollarCost(costs[credits.value])}}"
@@ -135,6 +136,7 @@
 </div>
 <!-- end panel -->
 
+<!--
 <div class="panel panel-default">
   <div class="panel-heading">
     <i class="fa fa-bars"></i>
@@ -146,3 +148,4 @@
     <button class="btn btn-info pull-right">Take survey</button>
   </div>
 </div>
+-->
