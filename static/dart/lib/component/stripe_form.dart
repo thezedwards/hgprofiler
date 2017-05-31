@@ -55,8 +55,7 @@ class StripeFormComponent {
     //StripeFormComponent(this._element);
     StripeFormComponent(this._auth, this._api) {
         this.xauthToken = this._auth.token;
-        this.description = 'Buy ${this.volume} ${this.item} for \$${dollarAmount}';
-        //context['stripeTokenHandler'] = allowInterop(this.stripeTokenHandler);
+        this.description = 'Buy ${this.volume} profiler ${this.item} for \$${dollarAmount}';
         context['stripeTokenHandler'] = this.stripeTokenHandler;
     }
 
@@ -74,19 +73,17 @@ class StripeFormComponent {
         Completer completer = new Completer();
         this.loading = true;
         String paymentUrl = '/api/users/${userId}/payment';
-
     }
 
     /// Submit a user payment request to API.
     Future _paymentRequest(String tokenId) {
         Completer completer = new Completer();
         this.loading = true;
-        //String paymentUrl = '/api/users/${userId}/payment';
         String paymentUrl = '/api/checkout/';
         Map body = {
             'user_id': this.userId,
             'stripe_token': tokenId,
-            'amount': num.parse(this.amount).toInt(),
+            'credits': this.volume,
             'description': this.description,
             'currency': this.currency
         };

@@ -3,8 +3,8 @@ import math
 import stripe
 
 from flask import g, jsonify, request
-from flask.ext.classy import FlaskView, route
-from werkzeug.exceptions import (BadRequest, Conflict, Forbidden,
+from flask.ext.classy import FlaskView
+from werkzeug.exceptions import (BadRequest, Forbidden,
                                  NotFound, ServiceUnavailable)
 
 from app.authorization import login_required
@@ -14,7 +14,7 @@ from model.configuration import get_config
 
 _payment_attrs = {
     'user_id': {'type': int, 'required': True},
-    'amount': {'type': int, 'required': True},
+    'credits': {'type': int, 'required': True},
     'stripe_token': {'type': str, 'required': True},
     'description': {'type': str, 'required': True},
     'currency': {'type': str, 'required': True},
@@ -25,8 +25,7 @@ def cost(units, cost_per_unit):
     """
     Calculate cost with discount.
     """
-    #rate = math.pow(0.967,(units/100))
-    cost = cost_per_unit * math.pow(units, 0.95) + 150
+    cost = int(cost_per_unit * math.pow(units, 0.95) + 150)
     return cost
 
 
@@ -35,6 +34,18 @@ class CheckoutView(FlaskView):
     API for managing user payments.
     """
     decorators = [login_required]
+
+    def _get_costs(self, credit_cost):
+        """
+        Return dictionary of credit costs.
+        """
+        costs = {}
+
+        # Generate price list
+        for i in range(100, 100100, 100):
+            costs[i] = cost(i, float(credit_cost))
+
+        return costs
 
     def index(self):
         '''
@@ -65,46 +76,43 @@ class CheckoutView(FlaskView):
         :status 401: authentication required
         :status 403: must be an administrator
         '''
-        costs = {}
         key = 'credit_cost'
-        cost_conf = g.db.query(Configuration) \
-                               .filter(Configuration.key==key) \
-                               .first()
+        credit_cost = g.db.query(Configuration) \
+                          .filter(Configuration.key == key) \
+                          .first()
 
-        if cost_conf is None:
+        if credit_cost is None:
             raise NotFound('There is no configuration item named "{}".'.format(key))
 
-        # Generate price list
-        for i in range(100, 100100, 100):
-            costs[i] = cost(i, float(cost_conf.value))
+        costs = self._get_costs(credit_cost.value)
 
         key = 'credit_currency'
         currency_conf = g.db.query(Configuration) \
-                         .filter(Configuration.key==key) \
-                         .first()
+                            .filter(Configuration.key == key) \
+                            .first()
 
         if currency_conf is None:
             raise NotFound('There is no configuration item named "{}".'.format(key))
 
         key = 'stripe_public_key'
         stripe_key_conf = g.db.query(Configuration) \
-                         .filter(Configuration.key==key) \
-                         .first()
+                              .filter(Configuration.key == key) \
+                              .first()
 
         if stripe_key_conf is None:
             raise NotFound('There is no configuration item named "{}".'.format(key))
-        total_sites = g.db.query(Site).filter(Site.valid==True).count()
+
+        total_sites = g.db.query(Site).filter(Site.valid == True).count()  # noqa
 
         data = {
             'costs': costs,
-            'cost_per_credit': float(cost_conf.value),
+            'cost_per_credit': float(credit_cost.value),
             'currency': currency_conf.value,
             'total_sites': total_sites,
-            'cost_all_sites': float(total_sites) * float(cost_conf.value),
+            'cost_all_sites': float(total_sites) * float(credit_cost.value),
             'stripe_public_key': stripe_key_conf.value
         }
         return jsonify(data)
-
 
     def post(self):
         '''
@@ -117,7 +125,7 @@ class CheckoutView(FlaskView):
             {
                 "user_id": 1,
                 "stripe_token": "tok_1A9VDuL25MRJTn0APWrFQrN6",
-                "amount": 20.00,
+                "credits": 400
                 "currency": "usd",
                 "description": "200 credits for $20",
             }
@@ -127,7 +135,7 @@ class CheckoutView(FlaskView):
         .. sourcecode:: json
 
             {
-                "message": "1 site created."
+                "message": "200 credits added."
             }
 
         :<header Content-Type: application/json
@@ -135,7 +143,6 @@ class CheckoutView(FlaskView):
         :<json int user_id: the user ID
         :<json str stripe_token: the stripe payment token
         :<json int credits: the purchase credits
-        :<json float amount: the purchase amount
 
         :>header Content-Type: application/json
         :>json string message: API response message
@@ -158,64 +165,79 @@ class CheckoutView(FlaskView):
         # Configure stripe client
         try:
             stripe.api_key = get_config(session=g.db,
-                             key='stripe_secret_key',
-                             required=True).value
+                                        key='stripe_secret_key',
+                                        required=True).value
         except Exception as e:
             raise ServiceUnavailable(e)
 
+        key = 'credit_cost'
+        credit_cost = g.db.query(Configuration) \
+                          .filter(Configuration.key == key) \
+                          .first()
+
+        if credit_cost is None:
+            raise NotFound('There is no configuration item named "{}".'.format(key))
 
         # Stripe token is created client-side using Stripe.js
         token = request_json['stripe_token']
 
         # Get payment paremeters
-        amount = request_json['amount']
+        credits = int(request_json['credits'])
         description = request_json['description']
         currency = request_json['currency']
+        costs = self._get_costs(credit_cost.value)
+
+        # Calculate credit amount.
+        try:
+            amount = costs[credits]
+            # credits = list(costs.keys())[list(
+            #    costs.values()).index(int(amount))]
+        except IndexError:
+            raise BadRequest('Invalid credit amount.')
 
         try:
             # Charge the user's card:
             charge = stripe.Charge.create(
-                  amount=amount,
-                  currency=currency,
-                  description=description,
-                  source=token,
-            )
+                amount=amount,
+                currency=currency,
+                description=description,
+                source=token)
         except stripe.error.CardError as e:
-          # Since it's a decline, stripe.error.CardError will be caught
-          body = e.json_body
-          err  = body['error']
-          raise BadRequest('Card error: {}'.format(err['message']))
+            # Since it's a decline, stripe.error.CardError will be caught
+            body = e.json_body
+            err = body['error']
+            raise BadRequest('Card error: {}'.format(err['message']))
         except stripe.error.RateLimitError as e:
-          # Too many requests made to the API too quickly
-          body = e.json_body
-          err  = body['error']
-          raise BadRequest('Rate limit error: {}'.format(err['message']))
+            # Too many requests made to the API too quickly
+            body = e.json_body
+            err = body['error']
+            raise BadRequest('Rate limit error: {}'.format(err['message']))
         except stripe.error.InvalidRequestError as e:
-          # Invalid parameters were supplied to Stripe's API
-          body = e.json_body
-          err  = body['error']
-          raise BadRequest('Invalid parameters: {}'.format(err['message']))
+            # Invalid parameters were supplied to Stripe's API
+            body = e.json_body
+            err = body['error']
+            raise BadRequest('Invalid parameters: {}'.format(err['message']))
         except stripe.error.AuthenticationError as e:
-          # Authentication with Stripe's API failed
-          # (maybe API keys changed recently)
-          body = e.json_body
-          err  = body['error']
-          raise ServiceUnavailable('Stripe authentication error: {}'.format(err['message']))
+            # Authentication with Stripe's API failed
+            # (maybe API keys changed recently)
+            body = e.json_body
+            err = body['error']
+            raise ServiceUnavailable('Stripe authentication error: {}'.format(err['message']))
         except stripe.error.APIConnectionError as e:
-          # Network communication with Stripe failed
-          body = e.json_body
-          err  = body['error']
-          raise ServiceUnavailable('Stripe API communication failed: {}'.format(err['message']))
+            # Network communication with Stripe failed
+            body = e.json_body
+            err = body['error']
+            raise ServiceUnavailable('Stripe API communication failed: {}'.format(err['message']))
         except stripe.error.StripeError as e:
-          # Generic error
-          body = e.json_body
-          err  = body['error']
-          raise ServiceUnavailable('Stripe error: {}'.format(err['message']))
+            # Generic error
+            body = e.json_body
+            err = body['error']
+            raise ServiceUnavailable('Stripe error: {}'.format(err['message']))
         except Exception as e:
-          # Something else happened, completely unrelated to Stripe
-          raise ServiceUnavailable('Error: {}'.format(e))
+            # Something else happened, completely unrelated to Stripe
+            raise ServiceUnavailable('Error: {}'.format(e))
 
-        user.credits += int(amount)
+        user.credits += credits
         g.db.commit()
         g.redis.publish('user', json.dumps(user.as_dict()))
 
