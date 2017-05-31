@@ -77,9 +77,24 @@ class UserCreditComponent {
         ]);
 
         this._fetchUser();
-        this._fetchCheckoutConf().then((_) => this.dollarAmount = this._costCalculator(this.credits.value) / 100)
+        //this._fetchCheckoutConf().then((_) => this.dollarAmount = this._costCalculator(this.credits.value) / 100)
+        //                         .then((_) => this.centAmount = this._costCalculator(this.credits.value))
+        //                         .then((_) => this.totalSearches = (this.credits.value / this.totalSites).floor());
+        this._fetchCheckoutConf().then((_) {
+                                    if(this.credits.value == 0) {
+                                        this.dollarAmount = 0;
+                                    } else {
+                                        this.dollarAmount = this._costCalculator(this.credits.value) / 100;
+                                    }
+                                 })
                                  .then((_) => this.centAmount = this._costCalculator(this.credits.value))
-                                 .then((_) => this.totalSearches = (this.credits.value / this.totalSites).floor());
+                                 .then((_) {
+                                     if(this.credits.value == 0 || this.totalSites == 0) {
+                                         this.totalSearches = 0;
+                                     } else {
+                                         this.totalSearches = (this.credits.value / this.totalSites).floor();
+                                    }
+                                 });
     }
 
     /// Calculate dollar cost
@@ -101,9 +116,19 @@ class UserCreditComponent {
 
     /// Trigger add site when the user presses enter in the site input.
     void _creditsListener(Event e) {
-        this.dollarAmount = this._costCalculator(this.credits.value) / 100;
         this.centAmount = this._costCalculator(this.credits.value);
-        this.totalSearches = (this.credits.value / this.totalSites).floor();
+
+        if(this.credits.value == 0) {
+            this.dollarAmount = 0;
+        } else {
+            this.dollarAmount = this._costCalculator(this.credits.value) / 100;
+        }
+
+         if(this.totalSites == 0) {
+             this.totalSearches = 0;
+         } else {
+             this.totalSearches = (this.credits.value / this.totalSites).floor();
+        }
     }
 
     int _costCalculator(num credits) {
