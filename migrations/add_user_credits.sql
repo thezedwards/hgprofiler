@@ -1,1 +1,1 @@
-ALTER TABLE user add credits INTEGER not null default 0;
+ALTER TABLE user ADD COLUMN credits INTEGER not null default 0;
