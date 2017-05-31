@@ -23,7 +23,7 @@
 
       <!-- Start body -->
       <div class='modal-body'>
-        <p><strong>{{description}}<strong></p>
+        <p>Buy <strong>{{volume}} {{item}}</strong> for <strong>$<span id="dollar-amount">{{dollarAmount}}</span></strong></p>
         <form class="form-horizontal" action="/charge" method="post" id="payment-form">
           <div class="form-group row">
             <label class="col-sm-2" for="card-element">
@@ -76,64 +76,4 @@
 </div>
 <!-- End modal -->
 
-
-<script>
-  /*
-  Stripe elements javascript
-  https://stripe.com/docs/elements
-
-  Mount Stripe card elements, validate input, and pass Stripe token to Dart
-  for payment processing.
-
-  Two functions are imported from Dart using package:js context:
-
-  1. setState(state, [errorMsg]) - for setting button states and displaying error messages
-  2. stripeTokenHandler(token) - the callback to process payment once the Stripe token is recieved.
-  */
-  /*
-  function loadStripe() {
-
-    var stripe = Stripe('pk_test_4XxInS26VHCH0cXvlrYX58W5');
-    var elements = stripe.elements();
-    // Custom styling can be passed to options when creating an Element.
-    var style = {
-      base: {
-        // Add your base input styles here. For example:
-        fontSize: '16px',
-        lineHeight: '24px'
-      }
-    };
-
-    // Create an instance of the card Element
-    var card = elements.create('card', {style: style});
-
-    // Add an instance of the card Element into the `card-element` <div>
-    card.mount('#card-element');
-    card.addEventListener('change', function(event) {
-      if (event.error) {
-        setState('error', event.error.message);
-      } else {
-        setState('default');
-      }
-    });
-
-    // Create a token or display an error the form is submitted.
-    var form = document.getElementById('payment-form');
-    var inputs = form.getElementsByTagName('input');
-    form.addEventListener('submit', function(event) {
-      event.preventDefault();
-
-      stripe.createToken(card).then(function(result) {
-        if (result.error) {
-          // Inform the user if there was an error
-          setState('error', result.error.message);
-        } else {
-          // Call Dart function to process payment
-          stripeTokenHandler(result.token);
-          setState('processing');
-        }
-      });
-    });
-  };
-  */
 </script>

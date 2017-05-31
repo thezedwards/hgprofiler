@@ -19,6 +19,12 @@ class StripeFormComponent {
     @NgAttr('data-amount')
     double amount;
 
+    @NgAttr('data-volume')
+    double volume;
+
+    @NgAttr('data-item')
+    String item;
+
     @NgAttr('data-dollar-amount')
     double dollarAmount;
 
@@ -31,12 +37,11 @@ class StripeFormComponent {
     @NgAttr('data-name')
     String name = 'Stripe Checkout';
 
-    @NgAttr('data-description')
-    String description = 'Pay with card';
 
     @NgAttr('data-user-id')
     int userId;
 
+    String description;
     String error;
     bool loading = false;
     bool complete = false;
@@ -50,41 +55,9 @@ class StripeFormComponent {
     //StripeFormComponent(this._element);
     StripeFormComponent(this._auth, this._api) {
         this.xauthToken = this._auth.token;
-        context['stripeTokenHandler'] = allowInterop(stripeTokenHandler);
-        context['setState'] = allowInterop(setState);
-    }
-
-    /// Set payment button class and text
-    void setState(state, [String errorMsg]) {
-        ButtonElement payButton = querySelector('#pay-button');
-        Element payIcon = querySelector('#pay-icon');
-        DivElement stripeErrors = querySelector('#stripe-errors');
-        if (state == 'processing') {
-            payButton.disabled = true;
-            payButton.innerHtml = '<i class="fa fa-spinner fa-spin"></i> Processing';
-            stripeErrors.innerHtml = '';
-            stripeErrors.setAttribute('class', '');
-            stripeErrors.setAttribute('role', '');
-        } else if (state == 'complete') {
-            payButton.setAttribute('class', 'btn btn-success');
-            payButton.innerHtml = '<i class="fa fa-check-square-o"></i> Complete';
-            stripeErrors.innerHtml = '';
-            stripeErrors.setAttribute('class', '');
-            stripeErrors.setAttribute('role', '');
-        } else if (state == 'error') {
-            payButton.disabled = true;
-            payButton.innerHtml = 'Pay <i class="fa fa-usd"></i>${dollarAmount}';
-            stripeErrors.setAttribute('class', 'alert alert-danger');
-            stripeErrors.setAttribute('role', 'alert');
-            stripeErrors.innerHtml = '${errorMsg}';
-        } else {
-            payButton.disabled = false;
-            payButton.setAttribute('class', 'btn btn-info');
-            payButton.innerHtml = 'Pay <i class="fa fa-usd"></i>${dollarAmount}';
-            stripeErrors.innerHtml = '';
-            stripeErrors.setAttribute('class', 'default');
-            stripeErrors.setAttribute('role', '');
-        }
+        this.description = 'Buy ${this.volume} ${this.item} for \$${dollarAmount}';
+        //context['stripeTokenHandler'] = allowInterop(this.stripeTokenHandler);
+        context['stripeTokenHandler'] = this.stripeTokenHandler;
     }
 
     void payButtonClickHandler() {
@@ -92,7 +65,7 @@ class StripeFormComponent {
         this.complete = false;
         DivElement modalDiv = querySelector(selector);
         Modal.wire(modalDiv).show();
-        this.setState('default');
+        context.callMethod('setState', ['default']);
         context.callMethod('loadStripe', [this.key]);
     }
 
@@ -136,20 +109,15 @@ class StripeFormComponent {
                 });
             })
             .catchError((response) {
-                this.setState('error', response.data['message']);
+                context.callMethod('setState', ['error', response.data['message']]);
             });
         completer.complete();
         return completer.future;
     }
 
-    void stripeTokenHandler(token) {
+    void stripeTokenHandler(String tokenID) {
         this.error = null;
         this.complete = false;
-        Map tokenData = JSON.decode(
-                    context['JSON'].callMethod(
-                        'stringify',
-                        [token])
-                    );
-        this._paymentRequest(tokenData['id']);
+        this._paymentRequest(tokenID);
     }
 }
