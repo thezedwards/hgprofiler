@@ -17,6 +17,43 @@ var style = {
     }
 };
 
+// Set payment button class and text
+function setState(state, errMsg) {
+    if(errMsg === undefined) {
+        errMsg = '';
+    }
+    var payButton = document.getElementById('pay-button');
+    var payIcon = document.getElementById('pay-icon');
+    var stripeErrors = document.getElementById('stripe-errors');
+    var dollarAmount = document.getElementById('dollar-amount').innerHTML;
+    if (state == 'processing') {
+        payButton.disabled = true;
+        payButton.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Processing';
+        stripeErrors.innerHTML = '';
+        stripeErrors.setAttribute('class', '');
+        stripeErrors.setAttribute('role', '');
+    } else if (state == 'complete') {
+        payButton.setAttribute('class', 'btn btn-success');
+        payButton.innerHTML = '<i class="fa fa-check-square-o"></i> Complete';
+        stripeErrors.innerHTML = '';
+        stripeErrors.setAttribute('class', '');
+        stripeErrors.setAttribute('role', '');
+    } else if (state == 'error') {
+        payButton.disabled = true;
+        payButton.innerHTML = 'Pay <i class="fa fa-usd"></i>' + dollarAmount;
+        stripeErrors.setAttribute('class', 'alert alert-danger');
+        stripeErrors.setAttribute('role', 'alert');
+        stripeErrors.innerHTML = errMsg;
+    } else {
+        payButton.disabled = false;
+        payButton.setAttribute('class', 'btn btn-info');
+        payButton.innerHTML = 'Pay <i class="fa fa-usd"></i>' + dollarAmount;
+        stripeErrors.innerHTML = '';
+        stripeErrors.setAttribute('class', 'default');
+        stripeErrors.setAttribute('role', '');
+    }
+}
+
 /**
  * Mount Stripe card elements, validate input, and pass Stripe token to
  * callback.
@@ -59,7 +96,7 @@ function loadStripe(publicKey) {
                 setState('error', result.error.message);
             } else {
                 // Pass token to callback.
-                stripeTokenHandler(result.token);
+                stripeTokenHandler(result.token.id);
                 setState('processing');
             }
         });
