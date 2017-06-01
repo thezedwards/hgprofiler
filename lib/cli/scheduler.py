@@ -18,7 +18,10 @@ class SchedulerCli(cli.BaseCli):
         self._db = app.database.get_engine(database_config, super_user=True)
         session = app.database.get_session(self._db)
 
-        # Get system user
+        # Get system user.
+        # Required in order to request new site tests
+        # when existing results expire.
+        # Results are stored per-user so a system user is used to create public results.
         self.user = session.query(User).filter(User.email == 'system').one()
 
         self._logger.info('Scheduler started.')
@@ -40,7 +43,7 @@ class SchedulerCli(cli.BaseCli):
         """
         Delete archives older than expiry date.
         """
-        worker.archive.delete_expired_archives.enqueue(user_id=self.user.id)
+        worker.archive.delete_expired_archives.enqueue()
 
     def _delete_expired_results(self):
         """
