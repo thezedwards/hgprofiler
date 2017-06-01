@@ -11,12 +11,12 @@ import app.database
 
 
 class NotificationView(FlaskView):
-    '''
+    """
     Send notifications using Server-Sent Events (SSE).
 
     Based on this:
     http://stackoverflow.com/questions/13386681/streaming-data-with-python-and-flask
-    '''
+    """
 
     CHANNELS = (
         'archive',
@@ -32,12 +32,12 @@ class NotificationView(FlaskView):
 
     @classmethod
     def quit_notifications(cls):
-        '''A helper function to end long-running notification threads. '''
+        """A helper function to end long-running notification threads. """
         cls.__should_quit = True
 
     @login_required
     def index(self):
-        ''' Open an SSE stream. '''
+        """ Open an SSE stream. """
 
         if request.headers.get('Accept') == 'text/event-stream':
             redis = app.database.get_redis(dict(g.config.items('redis')))
@@ -57,12 +57,12 @@ class NotificationView(FlaskView):
             raise NotAcceptable(message)
 
     def _stream(self, pubsub, client_id, user_id):
-        '''
+        """
         Stream events.
 
         If an event has a source_client_id key set, then it is *not*
         sent to that client.
-        '''
+        """
 
         # Prime the stream. (This forces headers to be sent. Otherwise the
         # client will think the stream is not open yet.)
@@ -82,9 +82,11 @@ class NotificationView(FlaskView):
             time_since_event = datetime.now() - event_time
 
             if time_since_event.seconds > 60:
-                event_time = datetime.now()
-                yield ''
+                yield _get_ping_event()
 
+                event_time = datetime.now()
+
+            # Send any new messages
             if message is not None:
                 channel = message['channel'].decode('utf8')
                 data = _get_message_data(message, client_id, user_id)
@@ -116,3 +118,16 @@ def _get_message_data(message, client_id, user_id):
             return None
 
     return data
+
+
+def _get_ping_event():
+    """
+    Return ping event string.
+    """
+    data = {
+        'timestamp': datetime.now().isoformat()
+    }
+    data_str = json.dumps(data)
+    channel = 'ping'
+
+    return 'event: {}\ndata: {}\n\n'.format(channel, data_str)
