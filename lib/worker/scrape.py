@@ -395,7 +395,7 @@ def random_proxy(db_session=None):
     timeout=60,
     jobdesc='Deleting expired results.'
 )
-def delete_expired_results():
+def delete_expired_results(user_id):
     """
     Delete results more than _days_to_keep_result.
 
@@ -419,7 +419,7 @@ def delete_expired_results():
 
         if result.site_id not in tested_sites:
             tracker_id = 'tracker.{}'.format(random_string(10))
-            test_site.enqueue(result.site_id, tracker_id)
+            test_site.enqueue(result.site_id, tracker_id, user_id)
             tested_sites.add(result.site_id)
 
     db_session.commit()
