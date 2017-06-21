@@ -172,7 +172,6 @@ def check_username(username, site_id, category_id, total,
             redis.publish('user', json.dumps(user.as_dict()))
             db_session.commit()
 
-
         # If this username search is complete, then queue an archive job.
         if current == total:
             description = 'Archiving results ' \
