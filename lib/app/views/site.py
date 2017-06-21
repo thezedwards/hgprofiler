@@ -212,8 +212,8 @@ class SiteView(FlaskView):
                                          'following is required: '
                                          'status code or page match.')
 
-            if site_json['url'].count('%s') != 1:
-                raise BadRequest('URL must contain one instance of replacement character %s')
+            if '%s' not in site_json['url']:
+                raise BadRequest('URL must contain replacement character: %s')
 
         # Save sites
         for site_json in request_json['sites']:
