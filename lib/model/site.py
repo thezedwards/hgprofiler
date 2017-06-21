@@ -131,4 +131,5 @@ class Site(Base):
 
     def get_url(self, username):
         ''' Interpolate a username into this site's URL. '''
-        return self.url % username
+        replacements = [username for i in range(0, self.url.count('%s'))]
+        return self.url % tuple(replacements)
