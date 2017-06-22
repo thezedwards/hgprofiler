@@ -29,7 +29,6 @@ import click
 import configparser
 import csv
 import datetime
-import getpass
 import json
 import jsonlines
 import logging
@@ -40,18 +39,57 @@ import sys
 import urllib
 import time
 from pygments import highlight, lexers, formatters
+from validators.url import url as valid_url
 
 # ToDo - remove and provide proper instructions:
 requests.packages.urllib3.disable_warnings()
 
 APP_NAME = 'profilercli'
 
+# Terminal colours
+RED = "\033[1;31m"
+BLUE = "\033[1;34m"
+CYAN = "\033[1;36m"
+GREEN = "\033[0;32m"
+RESET = "\033[0;0m"
+BOLD = "\033[;1m"
+REVERSE = "\033[;7m"
 
-def download_zip(url, output_dir):
+CONFIG_DIR = click.get_app_dir(APP_NAME)
+CONFIG_PATH = os.path.join(CONFIG_DIR, 'config.ini')
+CONFIG_DEFAULTS = {
+    'log_level': 'warning',
+    'profiler_app_host': None,
+    'profiler_api_token': None,
+    'log_file': None,
+}
+
+
+class NoTraceBackError(Exception):
     """
-    Download zip file from url.
+    Represents a human-facing exception with
+    color highlighting and no traceback.
     """
-    raise NotImplemented
+    def __init__(self, msg):
+        text = "{0.__name__}: {1}".format(type(self), msg)
+        coloured_text = RED + text + RESET
+        self.args = coloured_text,
+        sys.exit(self)
+
+
+class ProfilerError(Exception):
+    """
+    Represents a human-facing exception.
+    """
+    def __init__(self, message):
+        self.message = message
+
+
+class BadConfigError(NoTraceBackError):
+    """
+    Represents a human-facing configuration error.
+    """
+    pass
 
 
 def print_json(json_string):
@@ -66,12 +104,119 @@ def print_json(json_string):
     print(colourful_json)
 
 
-class ProfilerError(Exception):
+def _create_config_ini(config=CONFIG_DEFAULTS):
     """
-    Represents a human-facing exception.
+    Create default config.ini in config_path.
     """
-    def __init__(self, message):
-        self.message = message
+    os.makedirs(CONFIG_DIR, exist_ok=True)
+    with open(CONFIG_PATH, 'w+') as f:
+        f.write('[DEFAULT]\n')
+        for setting, value in config.items():
+            f.write('{}={}\n'.format(setting, value if value else ''))
+
+        logging.info('Created configuration file: {}'
+                     .format(CONFIG_PATH))
+
+
+def _get_config_ini():
+    """
+    Return dictionary of DEFAULT config.ini settings.
+
+    File will be created if it does not exist.
+    """
+    if not os.path.exists(CONFIG_PATH):
+        _create_config_ini()
+
+    cfg = os.path.join(CONFIG_PATH)
+    parser = configparser.ConfigParser()
+    parser.read([cfg])
+    rv = {}
+
+    for k, v in parser['DEFAULT'].items():
+        rv[k] = v
+
+    return rv
+
+
+def _get_token(api_host, username, password):
+    """
+    Obtain an API token.
+    """
+    # auth_url = config.settings['profiler_app_host'] + '/api/authentication/'
+    auth_url = urllib.parse.urljoin(api_host, 'api/authentication/')
+    print(auth_url)
+    payload = {'email': username, 'password': password}
+    response = requests.post(auth_url, json=payload, verify=False)
+    response.raise_for_status()
+
+    try:
+        token = response.json()['token']
+    except KeyError:
+        raise ProfilerError('Authentication failed.')
+
+    return token
+
+
+def _get_all_results(endpoint_url, key, headers, interval=5):
+    """
+    Fetch all results for endpoint_url.
+
+    :param endpoint_url (str): api endpoint URL.
+    :param key (str): json result key.
+    :param key (dict): request headers.
+    :param interval (int): request interval (seconds) (default:5).
+    """
+    page = 1
+    pages = 1
+    results = []
+
+    while page <= pages:
+        params = {'rpp': 100, 'page': page}
+        response = requests.get(endpoint_url,
+                                headers=headers,
+                                params=params,
+                                verify=False)
+
+        if response.status_code != 200:
+            return results
+        else:
+            data = response.json()
+            total = int(data['total_count'])
+            if total > 0:
+                pages = math.ceil(total / 100)
+
+            results += data[key]
+            page += 1
+            time.sleep(interval)
+
+    return results
+
+
+def _flatten_data(b, delim):
+    val = {}
+    for i in b.keys():
+        if isinstance(b[i], dict):
+            get = _flatten_data(b[i], delim)
+            for j in get.keys():
+                val[i + delim + j] = get[j]
+        else:
+            val[i] = b[i]
+
+    return val
+
+
+def _print_data_as_csv(data):
+    flat_data = list(map(lambda x: _flatten_data(x, "__"), data))
+    columns = list(set(x for y in flat_data for x in y.keys()))
+
+    writer = csv.writer(sys.stdout)  # stdout file doesn't require open()/close()
+    writer.writerow(columns)
+
+    for row in flat_data:
+        writer.writerow(list(map(lambda x: row.get(x, ""), columns)))
+
+
+# Click command line client
 
 
 class Config(object):
@@ -88,74 +233,54 @@ class Config(object):
             'error': logging.ERROR,
             'critical': logging.CRITICAL
         }
-        self._load_settings()
+        # Store config.ini values as settings
+        # These can be overriden by user with
+        # command line options
+        self.settings = _get_config_ini()
         self.log_level = self.log_levels[self.settings.get('log_level',
                                                            'warning').lower()]
         self.headers = {}
 
-    def _load_settings(self):
+    def is_valid(self):
         """
-        Load settings from config.ini.
-        The file will be created if it does not exist.
+        Return True if configuration settings are valid.
         """
-        if os.path.exists(self.config_path):
-            self.settings = self._read_config()
+        if self._validate_app_host() \
+           and self._validate_token():
+            return True
         else:
-            os.makedirs(self.config_dir, exist_ok=True)
-            self.settings = {
-                'log_level': 'warning',
-                'profiler_app_host': None,
-                'profiler_api_token': None,
-                'log_file': None,
-            }
-            with open(self.config_path, 'w+') as f:
-                f.write('[DEFAULT]\n')
-                for setting, value in self.settings.items():
-                    f.write('{}={}\n'.format(setting, value if value else ''))
+            return False
 
-                click.echo('Created configuration file: {}'
-                           .format(self.config_path))
-        # else:
-        #     click.secho('You are not authenticated.', fg='red')
-        #     self.settings = {
-        #         'log_level': 'warning',
-        #         'profiler_app_host': None,
-        #         'profiler_api_token': None,
-        #         'log_file': None,
-        #     }
-        #     os.makedirs(self.config_dir, exist_ok=True)
-        #     self.settings['profiler_app_host'] = input('App host:')
-        #     username = input('Username:')
-        #     password = getpass.getpass('Password:')
-        #     auth_url = urllib.parse.urljoin(self.settings['profiler_app_host'],
-        #                             '/api/authentication/')
-        #     payload = {'email': username, 'password': password}
-        #     response = requests.post(auth_url, json=payload, verify=False)
-        #     response.raise_for_status()
+        return True
 
-        #     try:
-        #         self.settings['profiler_api_token'] = response.json()['token']
-        #     except KeyError:
-        #         raise ProfilerError('Authentication failed.')
+    def _validate_app_host(self):
+        """
+        Return True if app host is valid URL.
+        """
+        app_host = self.settings['profiler_app_host']
 
-        #     with open(self.config_path, 'w+') as f:
-        #         f.write('[DEFAULT]\n')
-        #         for setting, value in self.settings.items():
-        #             f.write('{}n'.format(setting, value))
+        if not app_host:
+            logging.critical('profiler_app_host is required')
+            return False
 
-        #         click.echo('Created configuration file: {}'
-        #                    .format(self.config_path))
+        if not valid_url(self.settings['profiler_app_host']):
+            logging.critical('{} is not a valid URL'
+                             .format(app_host))
+            return False
 
-    def _read_config(self):
-        cfg = os.path.join(click.get_app_dir(APP_NAME), 'config.ini')
-        parser = configparser.ConfigParser()
-        parser.read([cfg])
-        rv = {}
+        return True
 
-        for k, v in parser['DEFAULT'].items():
-            rv[k] = v
+    def _validate_token(self):
+        """
+        Return True if token is set.
+        """
+        token = self.settings['profiler_api_token']
 
-        return rv
+        if not token:
+            logging.critical('profiler_api_token is required')
+            return False
+
+        return True
 
 
 # Create decorator allowing configuration to be passed between commands.
@@ -200,18 +325,29 @@ def cli(config, app_host, token, log_file, log_level):
     However the client largely uses config.ini which you can check config using
     print_config.
     """
+    # Update config with command line options
     if token:
         config.settings['profiler_api_token'] = token
-
-    if not config.settings['profiler_api_token']:
-        click.secho('You are not authenticated.', fg='red')
-
-    else:
-        config.headers['X-Auth'] = config.settings['profiler_api_token']
 
     if app_host:
         config.settings['profiler_app_host'] = app_host
 
+    # Validate or get input from user
+    if not config.is_valid():
+        config.settings['profiler_app_host'] = click.prompt('API host')
+        username = click.prompt('Username')
+        password = click.prompt('Password', hide_input=True)
+        config.settings['profiler_api_token'] = _get_token(
+            api_host=config.settings['profiler_app_host'],
+            username=username,
+            password=password)
+        click.secho(config.settings['profiler_api_token'],
+                    fg='green')
+
+        if click.confirm('Save settings?'):
+            _create_config_ini(config.settings)
+
+    config.headers['X-Auth'] = config.settings['profiler_api_token']
     config.api_host = urllib.parse.urljoin(config.settings['profiler_app_host'], 'api/')
     config.log_file = log_file
     config.log_level = config.log_levels[log_level]
@@ -223,29 +359,6 @@ def cli(config, app_host, token, log_file, log_level):
     else:
         logging.basicConfig(level=config.log_level,
                             format='%(asctime)s - %(levelname)s - %(message)s')
-
-
-@cli.command()
-@pass_config
-@click.option('--username', type=click.STRING, prompt=True, required=True)
-@click.option('--password', type=click.STRING, prompt=True, required=True)
-def get_token(config, username, password):
-    """
-    Obtain an API token.
-    """
-    # auth_url = config.settings['profiler_app_host'] + '/api/authentication/'
-    auth_url = urllib.parse.urljoin(config.api_host, 'authentication/')
-    payload = {'email': username, 'password': password}
-    response = requests.post(auth_url, json=payload, verify=False)
-    response.raise_for_status()
-
-    try:
-        token = response.json()['token']
-    except KeyError:
-        raise ProfilerError('Authentication failed.')
-
-    click.secho(token, fg='green')
-    click.echo("Don't forget to update config.ini with the new token")
 
 
 @cli.command()
@@ -394,10 +507,10 @@ def get_results(config,
         start = datetime.datetime.now()
         for username in bar:
             # Get results for username
-            results_url = urllib.parse.urljoin(config.api_host,
-                                       'results/')
-            username_url = urllib.parse.urljoin(results_url,
-                                        'username/{}'.format(username))
+            results_url = urllib.parse.urljoin(
+                config.api_host, 'results/')
+            username_url = urllib.parse.urljoin(
+                results_url, 'username/{}'.format(username))
             response = requests.get(username_url,
                                     headers=config.headers,
                                     verify=False)
@@ -501,8 +614,8 @@ def get_zip_results(config,
         start = datetime.datetime.now()
         for username in bar:
             # Get results for username
-            archive_url = urllib.parse.urljoin(config.api_host,
-                                       'archives/')
+            archive_url = urllib.parse.urljoin(
+                config.api_host, 'archives/')
             archive_url = archive_url + '?username={}'.format(username)
             response = requests.get(archive_url,
                                     headers=config.headers,
@@ -577,35 +690,31 @@ def get(config, resource, pretty):
         raise
 
 
-def get_job_results(app_host, headers, tracker_id, interval):
+@cli.command()
+@pass_config
+@click.option('-f',
+              '--output_format',
+              type=click.Choice(['json',
+                                 'csv']),
+              default='json',
+              help='Output format.')
+def get_sites(config, output_format):
     """
-    Fetch all results for tracker_id.
+    Get all sites.
     """
-    result_url = '{}/api/result/tracker/{}'.format(app_host, tracker_id)
-    page = 1
-    pages = 1
-    results = []
+    if not config.settings.get('profiler_api_token', None):
+        raise ProfilerError('"--token" is required for this function.')
 
-    while page <= pages:
-        params = {'rpp': 100, 'page': page}
-        response = requests.get(result_url,
-                                headers=headers,
-                                params=params,
-                                verify=False)
+    resource = 'sites'
+    url = urllib.parse.urljoin(config.api_host, resource)
+    results = _get_all_results(url, 'sites', headers=config.headers)
 
-        if response.status_code != 200:
-            return results
-        else:
-            data = response.json()
-            total = int(data['total_count'])
-            if total > 0:
-                pages = math.ceil(total / 100)
-
-            results += data['results']
-            page += 1
-            time.sleep(interval)
-
-    return results
+    if output_format == 'json':
+        print(results)
+    elif output_format == 'csv':
+        _print_data_as_csv(results)
+        pass
+        #  print_csv(results)
 
 
 if __name__ == '__main__':
