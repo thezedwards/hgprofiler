@@ -322,7 +322,7 @@ def cli(config, app_host, token, log_file, log_level):
         PROFILER_APP_HOST = host (protocol://address:port).
         PROFILER_API_TOKEN = API token (use get_token to obtain one).
 
-    However the client largely uses config.ini which you can check config using
+    However you may prefer to save your settings in the config.ini file - you can check config using
     print_config.
     """
     # Update config with command line options
@@ -386,7 +386,7 @@ def print_config(config):
 @click.option('--interval',
               type=click.INT,
               required=False,
-              default=60)
+              default=1)
 @pass_config
 def submit_usernames(config,
                      input_file,
@@ -413,7 +413,7 @@ def submit_usernames(config,
         raise ProfilerError('No usernames found.')
     else:
         click.echo('[*] Extracted {} usernames.'.format(len(usernames)))
-    print(config.api_host)
+
     username_url = urllib.parse.urljoin(config.api_host, 'username/')
     responses = []
 
@@ -467,15 +467,18 @@ def get_results(config,
                 ignore_missing,
                 output_format):
     """
-    \b
     Return results for list of usernames.
 
 
-    :param input_file (file): csv file containing 1 username per line.
-    :param output_file (file): output file csv or jsonlines.
+    :param input_file (file): text file containing 1 username per line.
+
+    :param output_file (file): output file [csv|json].
+
     :param interval (int): interval in seconds between API requests.
+
     :param ignore_missing (bool): ignore failed requests.
-    :param output_format (str): output format (csv, json).
+
+    :param output_format (str): output format [csv|json].
     """
     if not config.settings['profiler_api_token']:
         click.secho('You need an API token for this. Run "get_token" '
@@ -490,6 +493,7 @@ def get_results(config,
     else:
         click.echo('[*] Extracted {} usernames.'.format(len(usernames)))
 
+    print(output_format)
     if output_format == 'csv':
         writer = csv.writer(output_file)
         writer.writerow(['Username',
@@ -628,8 +632,11 @@ def get_zip_results(config,
             else:
                 response.raise_for_status()
 
-            # Parse results
             archives = response.json().get('archives', [])
+
+            # Only get first archive, getting all archives
+            # for the same username is not normally useful.
+            archives = archives[0:1]
 
             for archive in archives:
                 filename = '{}-{}.zip' \
