@@ -92,6 +92,20 @@ class BadConfigError(NoTraceBackError):
     pass
 
 
+class UnauthorisedError(NoTraceBackError):
+    """
+    Represents a human-facing HTTP Error.
+    """
+    pass
+
+
+class APIError(NoTraceBackError):
+    """
+    Represents a human-facing HTTP Error.
+    """
+    pass
+
+
 def print_json(json_string):
     """
     Thanks arnushky:
@@ -144,7 +158,6 @@ def _get_token(api_host, username, password):
     """
     # auth_url = config.settings['profiler_app_host'] + '/api/authentication/'
     auth_url = urllib.parse.urljoin(api_host, 'api/authentication/')
-    print(auth_url)
     payload = {'email': username, 'password': password}
     response = requests.post(auth_url, json=payload, verify=False)
     response.raise_for_status()
@@ -155,6 +168,22 @@ def _get_token(api_host, username, password):
         raise ProfilerError('Authentication failed.')
 
     return token
+
+
+def _validate_response(response):
+    """
+    Return True if response valid else
+    raise Exception.
+    """
+    # Provide some useful feedback if client
+    # is unauthorised.
+    # Otherwise just raise Exception
+    if response.status_code == 401:
+        raise UnauthorisedError('Configure or renew token!')
+    else:
+        raise APIError(response.text)
+
+    return True
 
 
 def _get_all_results(endpoint_url, key, headers, interval=5):
@@ -177,17 +206,26 @@ def _get_all_results(endpoint_url, key, headers, interval=5):
                                 params=params,
                                 verify=False)
 
-        if response.status_code != 200:
-            return results
-        else:
-            data = response.json()
-            total = int(data['total_count'])
-            if total > 0:
-                pages = math.ceil(total / 100)
+        _validate_response(response)
 
+        data = response.json()
+        try:
+            total = int(data['total_count'])
+        except KeyError:
+            raise ProfilerError('Could not parse total_count')
+        except:
+            raise
+
+        if total > 0:
+            pages = math.ceil(total / 100)
+
+        try:
             results += data[key]
-            page += 1
-            time.sleep(interval)
+        except KeyError:
+            raise ProfilerError('Json result does not contain "{}"'.format(key))
+
+        page += 1
+        time.sleep(interval)
 
     return results
 
@@ -274,7 +312,7 @@ class Config(object):
         """
         Return True if token is set.
         """
-        token = self.settings['profiler_api_token']
+        token = self.settings.get('profiler_api_token', None)
 
         if not token:
             logging.critical('profiler_api_token is required')
@@ -320,7 +358,7 @@ def cli(config, app_host, token, log_file, log_level):
     The following environment variables can be used:
 
         PROFILER_APP_HOST = host (protocol://address:port).
-        PROFILER_API_TOKEN = API token (use get_token to obtain one).
+        PROFILER_API_TOKEN = API token (use renew_token to obtain one).
 
     However you may prefer to save your settings in the config.ini file - you can check config using
     print_config.
@@ -334,6 +372,7 @@ def cli(config, app_host, token, log_file, log_level):
 
     # Validate or get input from user
     if not config.is_valid():
+        click.echo('Please authenticate..')
         config.settings['profiler_app_host'] = click.prompt('API host')
         username = click.prompt('Username')
         password = click.prompt('Password', hide_input=True)
@@ -402,7 +441,7 @@ def submit_usernames(config,
     :param interval (int): interval in seconds between API requests.
     """
     if not config.settings['profiler_api_token']:
-        click.secho('You need an API token for this. Run "get_token" '
+        click.secho('You need an API token for this. Run "renew_token" '
                     'before proceeding', fg='red')
         sys.exit()
 
@@ -430,7 +469,7 @@ def submit_usernames(config,
                                      headers=config.headers,
                                      json=payload,
                                      verify=False)
-            response.raise_for_status()
+            _validate_response(response)
             responses.append(response.content.decode('utf-8'))
             time.sleep(interval)
 
@@ -481,7 +520,7 @@ def get_results(config,
     :param output_format (str): output format [csv|json].
     """
     if not config.settings['profiler_api_token']:
-        click.secho('You need an API token for this. Run "get_token" '
+        click.secho('You need an API token for this. Run "renew_token" '
                     'before proceeding', fg='red')
         sys.exit()
 
@@ -493,7 +532,6 @@ def get_results(config,
     else:
         click.echo('[*] Extracted {} usernames.'.format(len(usernames)))
 
-    print(output_format)
     if output_format == 'csv':
         writer = csv.writer(output_file)
         writer.writerow(['Username',
@@ -524,7 +562,7 @@ def get_results(config,
                 if response.status_code != 200:
                     continue
             else:
-                response.raise_for_status()
+                _validate_response(response)
 
             # Parse results
             results = response.json().get('results', [])
@@ -592,7 +630,6 @@ def get_zip_results(config,
                     interval,
                     ignore_missing):
     """
-    \b
     Return zip results for list of usernames.
 
 
@@ -601,7 +638,7 @@ def get_zip_results(config,
     :param interval (int): interval in seconds between API requests.
     """
     if not config.settings['profiler_api_token']:
-        click.secho('You need an API token for this. Run "get_token" '
+        click.secho('You need an API token for this. Run "renew_token" '
                     'before proceeding', fg='red')
         sys.exit()
 
@@ -625,12 +662,16 @@ def get_zip_results(config,
                                     headers=config.headers,
                                     verify=False)
             time.sleep(interval)
-
+            # Allow user to ignore errors and missing results
             if ignore_missing:
                 if response.status_code != 200:
                     continue
+            # Log warnings if no result
             else:
-                response.raise_for_status()
+                if response.status_code != 200:
+                    msg = 'Failed to download archive for {}: {} - {}'.format(
+                        username, response.status_code, response.text)
+                    logging.warn(msg)
 
             archives = response.json().get('archives', [])
 
@@ -648,9 +689,14 @@ def get_zip_results(config,
                                         headers=config.headers,
                                         verify=False)
 
-                response.raise_for_status()
+                if response.status_code != 200:
+                    msg = 'Failed to download zip for {} archive ID : {} - {}'.format(
+                        username, archive['id'], response.status_code, response.text)
+                    logging.warn(msg)
 
-                with open(os.path.join(output_dir, filename), 'wb') as f:
+                outpath = os.path.join(output_dir, filename)
+
+                with open(outpath, 'wb') as f:
                     f.write(response.content)
 
                 time.sleep(interval)
@@ -684,13 +730,12 @@ def get(config, resource, pretty):
 
     url = urllib.parse.urljoin(config.api_host, resource)
     response = requests.get(url, headers=config.headers, verify=False)
-    response.raise_for_status()
+    _validate_response(response)
 
     try:
         if pretty:
             print_json(response.content.decode('utf-8'))
         else:
-            # print(json.dumps(response.json()))
             print(response.text)
 
     except Exception:
@@ -707,7 +752,7 @@ def get(config, resource, pretty):
               help='Output format.')
 def get_sites(config, output_format):
     """
-    Get all sites.
+    Return all sites data.
     """
     if not config.settings.get('profiler_api_token', None):
         raise ProfilerError('"--token" is required for this function.')
@@ -720,8 +765,25 @@ def get_sites(config, output_format):
         print(results)
     elif output_format == 'csv':
         _print_data_as_csv(results)
-        pass
-        #  print_csv(results)
+
+
+@cli.command()
+@pass_config
+def renew_token(config):
+    """
+    Renew authentication token.
+    """
+    username = click.prompt('Username')
+    password = click.prompt('Password', hide_input=True)
+    config.settings['profiler_api_token'] = _get_token(
+        api_host=config.settings['profiler_app_host'],
+        username=username,
+        password=password)
+    click.secho(config.settings['profiler_api_token'],
+                fg='green')
+
+    if click.confirm('Update config.ini with new token?'):
+        _create_config_ini(config.settings)
 
 
 if __name__ == '__main__':
