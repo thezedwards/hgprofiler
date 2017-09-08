@@ -127,7 +127,7 @@ class UsernameView(FlaskView):
 
         # sites = sites.filter(Site.valid == True).all() # noqa
         usernames = request_json['usernames']
-        requests = len(valid_sites) * usernames
+        requests = len(valid_sites) * len(usernames)
         if requests > g.user.credits:
             raise BadRequest('Insufficient credits.')
 
