@@ -126,13 +126,15 @@ class UsernameView(FlaskView):
                 valid_sites.append(site)
 
         # sites = sites.filter(Site.valid == True).all() # noqa
-        if len(valid_sites) > g.user.credits:
+        usernames = request_json['usernames']
+        requests = len(valid_sites) * usernames
+        if requests > g.user.credits:
             raise BadRequest('Insufficient credits.')
 
         if len(valid_sites) == 0:
             raise NotFound('No valid sites to check')
 
-        for username in request_json['usernames']:
+        for username in usernames:
             # Create an object in redis to track the number of sites completed
             # in this search.
             tracker_id = 'tracker.{}'.format(random_string(10))
