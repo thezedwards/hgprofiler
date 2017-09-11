@@ -145,12 +145,15 @@ class BackgroundTasksComponent {
         return completer.future;
     }
 
-    /// Listen for updates from background workers.
+   /// Listen for updates from background workers.
     void _workerListener(Event e) {
         Map json = JSON.decode(e.data);
         String status = json['status'];
 
-        if (status == 'queued' || status == 'started' || status == 'finished') {
+        if (status == 'created' || status == 'deleted') {
+            // A worker process has started or ended.
+            this._fetchWorkers();
+        } else if (status == 'started') {
             // This information can only be fetched via REST.
             this._fetchWorkers().then((_) => this._fetchQueues());
         } else if (status == 'progress') {
@@ -163,6 +166,17 @@ class BackgroundTasksComponent {
             } else {
                 // This is a job we don't know about: needs REST call.
                 this._fetchWorkers().then((_) => this._fetchQueues());
+            }
+        } else if (status == 'finished') {
+            this._runningJobs.remove(json['id']);
+
+            for (Map worker in this.workers) {
+                if (worker['current_job'] != null &&
+                    worker['current_job']['id'] == json['id']) {
+                    worker['current_job'] = null;
+                    worker['state'] = 'idle';
+                    break;
+                }
             }
         } else if (status == 'failed') {
             this._fetchFailedTasks().then((_) => this._fetchWorkers());
